@@ -1,0 +1,99 @@
+// ============================================
+// Reset SCSS
+// ============================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Roboto', '-apple-system', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  color: #212121;
+  background-color: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+// Remove default button styles
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+// Remove default input styles
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+// Remove default list styles
+ul,
+ol {
+  list-style: none;
+}
+
+// Remove default link styles
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// Remove default heading margins
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 500;
+}
+
+// Remove default paragraph margin
+p {
+  margin: 0;
+}
+
+// Images
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// Tables
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+// Remove outline on focus for non-keyboard users
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Ensure focus is visible for keyboard users
+:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+

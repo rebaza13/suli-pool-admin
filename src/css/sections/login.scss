@@ -1,0 +1,72 @@
+// ============================================
+// Login Section Styles
+// ============================================
+
+@import '../variables.scss';
+
+.login-page {
+  padding: $spacing-md;
+  min-height: 100vh;
+}
+
+.login-card {
+  width: 100%;
+  max-width: $login-card-max-width;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  overflow: hidden;
+}
+
+.login-card-header {
+  padding: $login-card-padding;
+  padding-bottom: $spacing-lg;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+
+  .text-h4 {
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+  }
+}
+
+.login-card-body {
+  padding: $login-card-padding;
+}
+
+.login-form {
+  .q-field {
+    margin-bottom: $spacing-md;
+  }
+
+  .q-input {
+    font-size: $font-size-md;
+  }
+}
+
+.login-submit-btn {
+  height: 48px;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  text-transform: none;
+  border-radius: $radius-md;
+  transition: all $transition-normal;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: $breakpoint-sm) {
+  .login-card {
+    max-width: 100%;
+    margin: $spacing-md;
+  }
+
+  .login-card-header,
+  .login-card-body {
+    padding: $spacing-lg;
+  }
+}
+

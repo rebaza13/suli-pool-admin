@@ -1,0 +1,56 @@
+// ============================================
+// Dashboard Section Styles
+// ============================================
+
+@import '../variables.scss';
+
+.dashboard-layout {
+  background-color: $bg-secondary;
+}
+
+.dashboard-header {
+  background-color: $bg-primary;
+  box-shadow: $shadow-md;
+}
+
+.dashboard-drawer {
+  background-color: $bg-primary;
+}
+
+.dashboard-page {
+  padding: $dashboard-padding;
+  min-height: calc(100vh - #{$header-height});
+}
+
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+// Dashboard cards
+.dashboard-card {
+  background: $bg-primary;
+  border-radius: $radius-lg;
+  padding: $card-padding;
+  box-shadow: $shadow-sm;
+  transition: all $transition-normal;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: $breakpoint-md) {
+  .dashboard-page {
+    padding: $spacing-md;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .dashboard-page {
+    padding: $spacing-sm;
+  }
+}
+

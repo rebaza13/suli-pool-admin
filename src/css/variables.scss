@@ -1,0 +1,105 @@
+// ============================================
+// Variables SCSS
+// ============================================
+
+// Colors
+$primary-color: #1976d2;
+$secondary-color: #26a69a;
+$accent-color: #9c27b0;
+$dark-color: #1d1d1d;
+$dark-page-color: #121212;
+
+$positive-color: #21ba45;
+$negative-color: #c10015;
+$info-color: #31ccec;
+$warning-color: #f2c037;
+
+// Text Colors
+$text-primary: #212121;
+$text-secondary: #757575;
+$text-disabled: #bdbdbd;
+$text-white: #ffffff;
+
+// Background Colors
+$bg-primary: #ffffff;
+$bg-secondary: #f5f5f5;
+$bg-dark: #1d1d1d;
+
+// Border Colors
+$border-color: #e0e0e0;
+$border-color-dark: #424242;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Border Radius
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-round: 50%;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Breakpoints
+$breakpoint-xs: 0;
+$breakpoint-sm: 600px;
+$breakpoint-md: 960px;
+$breakpoint-lg: 1280px;
+$breakpoint-xl: 1920px;
+
+// Typography
+$font-family-primary: 'Roboto', '-apple-system', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+$font-size-xxxl: 32px;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// Layout
+$header-height: 64px;
+$sidebar-width: 280px;
+$sidebar-collapsed-width: 80px;
+
+// Login specific
+$login-card-max-width: 450px;
+$login-card-padding: 40px;
+
+// Dashboard specific
+$dashboard-padding: 24px;
+$card-padding: 20px;
+

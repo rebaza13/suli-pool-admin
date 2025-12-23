@@ -1,1 +1,47 @@
-// app global css in SCSS form
+// ============================================
+// App Global CSS
+// ============================================
+
+// Import variables and reset
+@import './variables.scss';
+@import './reset.scss';
+
+// Import section styles
+@import './sections/login.scss';
+@import './sections/dashboard.scss';
+
+// Global styles
+body {
+  font-family: $font-family-primary;
+  color: $text-primary;
+  background-color: $bg-secondary;
+}
+
+// Utility classes
+.text-center {
+  text-align: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $border-color;
+  border-radius: $radius-sm;
+
+  &:hover {
+    background: $text-secondary;
+  }
+}
+
