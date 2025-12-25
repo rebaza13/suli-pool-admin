@@ -11,11 +11,9 @@
 </script>
 
 <style lang="scss" scoped>
-@import '../css/variables.scss';
-
 .login-layout {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  background: transparent;
 }
 </style>
 

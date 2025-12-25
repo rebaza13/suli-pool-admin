@@ -9,12 +9,18 @@
 // Import section styles
 @import './sections/login.scss';
 @import './sections/dashboard.scss';
+@import './sections/hero.scss';
+@import './sections/installation.scss';
+@import './sections/timeline.scss';
+@import './sections/why.scss';
+@import './sections/about.scss';
+@import './sections/stats.scss';
 
 // Global styles
 body {
-  font-family: $font-family-primary;
-  color: $text-primary;
-  background-color: $bg-secondary;
+  font-family: $font-latin;
+  color: $color-text;
+  background-color: $color-bg;
 }
 
 // Utility classes
@@ -33,15 +39,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: $bg-secondary;
+  background: $color-bg;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $border-color;
-  border-radius: $radius-sm;
+  background: $color-border;
+  border-radius: $radius-8;
 
   &:hover {
-    background: $text-secondary;
+    background: $color-text-soft;
   }
 }
 

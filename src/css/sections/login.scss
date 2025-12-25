@@ -5,68 +5,183 @@
 @import '../variables.scss';
 
 .login-page {
-  padding: $spacing-md;
+  position: relative;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-24;
+  overflow: hidden;
+
+  // Background wallpaper with overlay
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/images/anime-moon-landscape.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+  }
+
+  // Dark overlay for better readability
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba($color-primary, 0.85) 0%,
+      rgba($color-primary, 0.75) 50%,
+      rgba($color-secondary, 0.7) 100%
+    );
+    z-index: 1;
+  }
+
+  > * {
+    position: relative;
+    z-index: 2;
+  }
 }
 
 .login-card {
   width: 100%;
-  max-width: $login-card-max-width;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-xl;
+  max-width: 520px;
+  background: rgba($color-white, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: $radius-24;
+  box-shadow: 
+    0 20px 60px rgba($color-black, 0.3),
+    0 0 0 1px rgba($color-white, 0.1) inset;
   overflow: hidden;
+  border: 1px solid rgba($color-white, 0.2);
 }
 
 .login-card-header {
-  padding: $login-card-padding;
-  padding-bottom: $spacing-lg;
+  padding: $space-48 $space-40 $space-32;
   text-align: center;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(180deg, rgba($color-secondary, 0.05) 0%, transparent 100%);
+  border-bottom: 1px solid rgba($color-border, 0.5);
+
+  .logo-container {
+    margin-bottom: $space-24;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      max-width: 140px;
+      height: auto;
+      filter: drop-shadow(0 4px 12px rgba($color-secondary, 0.3));
+    }
+  }
 
   .text-h4 {
-    font-weight: $font-weight-bold;
-    color: $text-primary;
+    font-weight: 600;
+    color: $color-primary;
+    font-size: $font-size-2xl;
+    margin-bottom: $space-8;
+    letter-spacing: -0.02em;
+  }
+
+  .text-subtitle1 {
+    color: $color-text-soft;
+    font-size: $font-size-sm;
   }
 }
 
 .login-card-body {
-  padding: $login-card-padding;
+  padding: $space-40;
 }
 
 .login-form {
   .q-field {
-    margin-bottom: $spacing-md;
+    margin-bottom: $space-20;
+
+    :deep(.q-field__control) {
+      background: $color-white;
+      border-radius: $radius-12;
+    }
+
+    :deep(.q-field__native) {
+      color: $color-text;
+      font-size: $font-size-md;
+    }
+
+    :deep(.q-field__label) {
+      color: $color-text-soft;
+      font-size: $font-size-sm;
+    }
+
+    :deep(.q-field__messages) {
+      color: $color-text-soft;
+      font-size: $font-size-xs;
+    }
   }
 
   .q-input {
-    font-size: $font-size-md;
+    :deep(.q-field__control) {
+      border: 1px solid $color-border;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: $color-secondary;
+      }
+    }
+
+    :deep(.q-field--focused .q-field__control) {
+      border-color: $color-secondary;
+      box-shadow: 0 0 0 3px rgba($color-secondary, 0.1);
+    }
   }
 }
 
 .login-submit-btn {
   height: 48px;
   font-size: $font-size-md;
-  font-weight: $font-weight-medium;
+  font-weight: 600;
   text-transform: none;
-  border-radius: $radius-md;
-  transition: all $transition-normal;
+  border-radius: $radius-12;
+  background: linear-gradient(135deg, $color-secondary 0%, $color-accent 100%);
+  transition: all 0.3s ease;
+  margin-top: $space-8;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: $shadow-lg;
+    box-shadow: 0 8px 20px rgba($color-secondary, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
 // Responsive adjustments
-@media (max-width: $breakpoint-sm) {
+@media (max-width: $bp-sm) {
+  .login-page {
+    padding: $space-16;
+  }
+
   .login-card {
     max-width: 100%;
-    margin: $spacing-md;
   }
 
-  .login-card-header,
+  .login-card-header {
+    padding: $space-32 $space-24 $space-24;
+
+    .logo-container img {
+      max-width: 100px;
+    }
+  }
+
   .login-card-body {
-    padding: $spacing-lg;
+    padding: $space-24;
   }
 }
-

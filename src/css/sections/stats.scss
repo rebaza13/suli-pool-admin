@@ -1,0 +1,232 @@
+// ============================================
+// Company Statistics Styles
+// ============================================
+
+@import '../variables.scss';
+
+.stats-page {
+  padding: $space-32;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-32;
+  padding-bottom: $space-24;
+  border-bottom: 1px solid $color-border;
+
+  .stats-title {
+    font-size: $font-size-3xl;
+    font-weight: 600;
+    color: $color-primary;
+    margin: 0;
+  }
+}
+
+.stats-empty {
+  text-align: center;
+  padding: $space-64 $space-32;
+
+  .empty-icon {
+    font-size: $font-size-6xl;
+    color: $color-text-soft;
+    margin-bottom: $space-24;
+  }
+
+  .empty-title {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $color-text;
+    margin-bottom: $space-12;
+  }
+
+  .empty-text {
+    color: $color-text-soft;
+    margin-bottom: $space-32;
+  }
+}
+
+.stats-list {
+  display: grid;
+  gap: $space-24;
+}
+
+.stats-card {
+  background: $color-white;
+  border-radius: $radius-16;
+  box-shadow: 0 1px 3px rgba($color-black, 0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba($color-black, 0.15);
+  }
+
+  .card-header {
+    padding: $space-24;
+    background: linear-gradient(180deg, rgba($color-secondary, 0.05) 0%, transparent 100%);
+    border-bottom: 1px solid $color-border;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $space-16;
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: $space-12;
+      flex-wrap: wrap;
+    }
+
+    .order-badge {
+      background: $color-secondary;
+      color: $color-white;
+      width: 32px;
+      height: 32px;
+      border-radius: $radius-pill;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: $font-size-sm;
+    }
+
+    .value-badge {
+      background: rgba($color-secondary, 0.12);
+      color: $color-secondary;
+      padding: $space-4 $space-12;
+      border-radius: $radius-pill;
+      font-weight: 800;
+      font-size: $font-size-sm;
+    }
+
+    .icon-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: $space-8;
+      padding: $space-4 $space-12;
+      border-radius: $radius-pill;
+      background: rgba($color-primary, 0.08);
+      color: $color-primary;
+      font-weight: 700;
+      font-size: $font-size-sm;
+      max-width: 360px;
+      min-width: 0;
+
+      .icon-name {
+        display: inline-block;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: $space-8;
+    }
+  }
+
+  .card-content {
+    padding: $space-24;
+  }
+
+  .labels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: $space-12;
+  }
+
+  .label-pill {
+    padding: $space-12 $space-16;
+    border-radius: $radius-12;
+    background: $color-bg;
+    border: 1px solid $color-border;
+  }
+}
+
+.stats-form {
+  .form-section {
+    margin-bottom: $space-32;
+    padding-bottom: $space-24;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-title {
+      font-size: $font-size-xl;
+      font-weight: 600;
+      color: $color-primary;
+      margin-bottom: $space-24;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: $space-16;
+    margin-bottom: $space-20;
+  }
+
+  .stats-icon-field {
+    display: grid;
+    gap: $space-8;
+    align-content: start;
+
+    .icon-preview-line {
+      display: flex;
+      align-items: center;
+      gap: $space-12;
+      min-height: 32px;
+
+      .icon-chip {
+        border-radius: $radius-12;
+        padding: $space-6 $space-12;
+        font-weight: 700;
+        max-width: 100%;
+
+        .chip-text {
+          display: inline-block;
+          max-width: 220px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .icon-hint {
+        color: $color-text-soft;
+        font-size: $font-size-sm;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: $bp-md) {
+  .stats-page {
+    padding: $space-16;
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .stats-page {
+    padding: $space-12;
+  }
+
+  .stats-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+  }
+}
+
+

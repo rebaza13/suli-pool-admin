@@ -5,21 +5,22 @@
 @import '../variables.scss';
 
 .dashboard-layout {
-  background-color: $bg-secondary;
+  background-color: $color-bg;
 }
 
 .dashboard-header {
-  background-color: $bg-primary;
-  box-shadow: $shadow-md;
+  background-color: $color-white;
+  box-shadow: 0 2px 8px rgba($color-black, 0.1);
 }
 
 .dashboard-drawer {
-  background-color: $bg-primary;
+  background-color: $color-white;
+  border-right: 1px solid $color-border;
 }
 
 .dashboard-page {
-  padding: $dashboard-padding;
-  min-height: calc(100vh - #{$header-height});
+  padding: $space-32;
+  min-height: calc(100vh - 64px);
 }
 
 .dashboard-container {
@@ -30,27 +31,184 @@
 
 // Dashboard cards
 .dashboard-card {
-  background: $bg-primary;
-  border-radius: $radius-lg;
-  padding: $card-padding;
-  box-shadow: $shadow-sm;
-  transition: all $transition-normal;
+  background: $color-white;
+  border-radius: $radius-16;
+  padding: $space-24;
+  box-shadow: 0 1px 3px rgba($color-black, 0.08);
+  transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: $shadow-md;
+    box-shadow: 0 4px 12px rgba($color-black, 0.15);
+  }
+}
+
+// ============================================
+// Sidebar Styles
+// ============================================
+
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba($color-secondary, 0.04) 0%, transparent 35%);
+}
+
+.sidebar-header {
+  padding: $space-24 $space-20;
+  border-bottom: 1px solid $color-border;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .sidebar-title {
+    font-weight: 600;
+    font-size: $font-size-lg;
+    color: $color-primary;
+    display: flex;
+    align-items: center;
+    gap: $space-12;
+
+    img {
+      height: 28px;
+      width: auto;
+    }
+  }
+
+  .sidebar-toggle-btn {
+    color: $color-text-soft;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: $color-secondary;
+      background-color: rgba($color-secondary, 0.1);
+    }
+  }
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-16 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu-item {
+  margin: $space-4 0;
+
+  .menu-link {
+    display: flex;
+    align-items: center;
+    padding: $space-12 $space-20;
+    color: $color-text;
+    text-decoration: none;
+    font-size: $font-size-md;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    position: relative;
+    cursor: pointer;
+    border-radius: $radius-12;
+    margin: 0 $space-8;
+
+    &:hover {
+      background-color: rgba($color-secondary, 0.05);
+      color: $color-secondary;
+      border-left-color: $color-secondary;
+    }
+
+    // IMPORTANT: we use exact-active only; otherwise "/" becomes active for all routes.
+    &.active,
+    &.router-link-exact-active {
+      background-color: rgba($color-secondary, 0.1);
+      color: $color-secondary;
+      border-left-color: $color-secondary;
+      font-weight: 600;
+    }
+
+    .menu-icon {
+      margin-right: $space-12;
+      font-size: $font-size-lg;
+      width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+    }
+
+    .menu-label {
+      flex: 1;
+    }
+  }
+}
+
+// Collapsed sidebar styles
+.q-drawer--mini {
+  .sidebar-header {
+    padding: $space-24 $space-12;
+    justify-content: center;
+    flex-direction: column;
+    gap: $space-12;
+
+    .sidebar-title {
+      img {
+        height: 32px;
+      }
+
+      span {
+        display: none;
+      }
+    }
+
+    .sidebar-toggle-btn {
+      // Keep the button visible in mini mode
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  }
+
+  .sidebar-menu-item {
+    .menu-link {
+      padding: $space-12;
+      justify-content: center;
+
+      .menu-icon {
+        margin-right: 0;
+      }
+
+      .menu-label {
+        display: none;
+      }
+    }
   }
 }
 
 // Responsive adjustments
-@media (max-width: $breakpoint-md) {
+@media (max-width: $bp-md) {
   .dashboard-page {
-    padding: $spacing-md;
+    padding: $space-16;
   }
 }
 
-@media (max-width: $breakpoint-sm) {
+@media (max-width: $bp-sm) {
   .dashboard-page {
-    padding: $spacing-sm;
+    padding: $space-12;
+  }
+
+  .sidebar-header {
+    padding: $space-16 $space-12;
+  }
+
+  .sidebar-menu-item {
+    .menu-link {
+      padding: $space-12 $space-16;
+      font-size: $font-size-sm;
+    }
   }
 }
-

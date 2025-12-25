@@ -1,0 +1,443 @@
+<template>
+  <q-page class="timeline-page">
+    <div class="timeline-header">
+      <h1 class="timeline-title">Timeline Management</h1>
+      <q-btn color="secondary" icon="add" label="Add Event" @click="openCreateDialog" />
+    </div>
+
+    <!-- Loading -->
+    <div v-if="timelineStore.loading" class="text-center q-pa-xl">
+      <q-spinner color="secondary" size="3em" />
+      <p class="q-mt-md text-grey-7">Loading timeline events...</p>
+    </div>
+
+    <!-- Error -->
+    <q-banner v-else-if="timelineStore.error" rounded class="bg-negative text-white q-mb-md">
+      {{ timelineStore.error }}
+    </q-banner>
+
+    <!-- Empty -->
+    <div v-else-if="timelineStore.events.length === 0" class="timeline-empty-state">
+      <q-icon name="timeline" class="empty-icon" />
+      <h2 class="empty-title">No Timeline Events Yet</h2>
+      <p class="empty-text">Create your first event to get started</p>
+      <q-btn color="secondary" icon="add" label="Add Event" @click="openCreateDialog" />
+    </div>
+
+    <!-- List -->
+    <div v-else class="timeline-events-list">
+      <div v-for="event in timelineStore.events" :key="event.id" class="timeline-event-card">
+        <div class="event-header">
+          <div class="event-title-section">
+            <div class="event-order-badge">{{ event.sort_order }}</div>
+            <div v-if="event.event_date" class="event-date-badge">{{ formatDate(event.event_date) }}</div>
+            <div class="event-status" :class="event.is_enabled ? 'active' : 'inactive'">
+              <q-icon :name="event.is_enabled ? 'check_circle' : 'cancel'" />
+              <span>{{ event.is_enabled ? 'Active' : 'Inactive' }}</span>
+            </div>
+          </div>
+
+          <div class="event-actions">
+            <q-btn flat dense round icon="edit" color="secondary" @click="openEditDialog(event)" />
+            <q-btn flat dense round icon="delete" color="negative" @click="confirmDelete(event)" />
+          </div>
+        </div>
+
+        <div class="event-content">
+          <div class="timeline-translations">
+            <h3 class="section-title">Translations</h3>
+
+            <div v-if="event.translations.length > 0" class="translations-list">
+              <div v-for="t in event.translations" :key="t.id" class="translation-item">
+                <div class="translation-header">
+                  <span class="locale-badge">{{ t.locale }}</span>
+                </div>
+                <div class="translation-fields">
+                  <div><strong>Title:</strong> {{ t.title }}</div>
+                  <div v-if="t.description"><strong>Description:</strong> {{ t.description }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="text-body2 text-grey-7 q-pa-md">No translations added</div>
+          </div>
+
+          <!-- Images -->
+          <div class="timeline-images">
+            <h3 class="section-title">
+              Images
+              <span class="text-body2 text-grey-7">({{ event.images.length }})</span>
+            </h3>
+
+            <div v-if="event.images.length > 0" class="images-grid">
+              <div v-for="img in event.images" :key="img.id" class="image-item">
+                <img
+                  v-if="img.media_asset"
+                  :src="getImageUrl(img.media_asset.bucket, img.media_asset.path)"
+                  :alt="img.media_asset.alt || 'Timeline image'"
+                />
+                <div class="image-order-badge">{{ (img.sort_order || 0) + 1 }}</div>
+                <div class="image-overlay">
+                  <div class="image-actions">
+                    <q-btn
+                      round
+                      dense
+                      flat
+                      icon="delete"
+                      color="white"
+                      @click="confirmDeleteImage(img.id)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-body2 text-grey-7 q-pa-md">No images uploaded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create/Edit Dialog -->
+    <q-dialog v-model="showDialog" persistent>
+      <q-card class="timeline-form-card" style="min-width: 820px; max-width: 92vw">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Timeline Event</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-form class="timeline-form" @submit.prevent="handleSubmit">
+            <div class="form-section">
+              <h3 class="section-title">Basic Information</h3>
+              <div class="form-row">
+                <q-input
+                  v-model.number="formData.sort_order"
+                  type="number"
+                  label="Sort Order"
+                  outlined
+                  :rules="[val => val >= 0 || 'Order must be 0 or greater']"
+                />
+                <q-input
+                  v-model="formData.event_date"
+                  type="date"
+                  label="Event Date"
+                  outlined
+                  hint="Optional"
+                />
+                <q-toggle v-model="formData.is_enabled" label="Enabled" color="secondary" />
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">Translations</h3>
+
+              <div
+                v-for="(t, index) in formData.translations"
+                :key="index"
+                class="translation-item q-mb-md"
+              >
+                <div class="translation-header">
+                  <span class="locale-badge">{{ t.locale }}</span>
+                </div>
+
+                <div class="translation-fields">
+                  <q-input
+                    v-model="t.title"
+                    label="Title"
+                    outlined
+                    :rules="[val => !!val || 'Title is required']"
+                    class="q-mb-md"
+                  />
+                  <q-input
+                    v-model="t.description"
+                    label="Description"
+                    type="textarea"
+                    outlined
+                    rows="4"
+                    class="q-mb-md"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Images -->
+            <div class="form-section">
+              <h3 class="section-title">Images</h3>
+
+              <!-- Existing Images (when editing) -->
+              <div
+                v-if="isEditing && formData.existing_images && formData.existing_images.length > 0"
+                class="images-grid q-mb-md"
+              >
+                <div v-for="(img, index) in formData.existing_images" :key="img.id" class="image-item">
+                  <img
+                    v-if="img.media_asset"
+                    :src="getImageUrl(img.media_asset.bucket, img.media_asset.path)"
+                    :alt="img.media_asset.alt || 'Timeline image'"
+                  />
+                  <div class="image-order-badge">{{ index + 1 }}</div>
+                  <div class="image-overlay">
+                    <div class="image-actions">
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        icon="delete"
+                        color="white"
+                        @click="confirmDeleteImage(img.id)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- New Images to Upload -->
+              <div v-if="formData.image_files && formData.image_files.length > 0" class="images-grid q-mb-md">
+                <div
+                  v-for="(file, index) in formData.image_files"
+                  :key="`new-${index}`"
+                  class="image-item"
+                >
+                  <img :src="getImagePreview(file)" :alt="file.name" />
+                  <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
+                  <div class="image-overlay">
+                    <div class="image-actions">
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        icon="delete"
+                        color="white"
+                        @click="removeImage(index)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="image-upload-area"
+                @click="triggerFileInput"
+                @dragover.prevent
+                @drop.prevent="handleDrop"
+              >
+                <q-icon name="cloud_upload" class="upload-icon" />
+                <div class="upload-text">Click or drag images here to upload {{ isEditing ? '(new images)' : '' }}</div>
+                <input
+                  ref="fileInput"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style="display: none"
+                  @change="handleFileSelect"
+                />
+              </div>
+            </div>
+
+            <div class="q-mt-lg row justify-end q-gutter-sm">
+              <q-btn flat label="Cancel" v-close-popup />
+              <q-btn
+                type="submit"
+                color="secondary"
+                :label="isEditing ? 'Update' : 'Create'"
+                :loading="timelineStore.loading"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+  </q-page>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
+import { useTimelineStore, type TimelineEventFull, type TimelineEventFormData } from 'src/stores/timeline-store';
+import { makePublicUrl } from 'src/composables/useSupabaseStorage';
+
+const timelineStore = useTimelineStore();
+const $q = useQuasar();
+
+const showDialog = ref(false);
+const isEditing = ref(false);
+const editingId = ref<string | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const formData = ref<TimelineEventFormData>({
+  sort_order: 0,
+  is_enabled: true,
+  event_date: null,
+  translations: [
+    { locale: 'en', title: '', description: null },
+    { locale: 'ar', title: '', description: null },
+    { locale: 'ckb', title: '', description: null },
+  ],
+  image_files: [],
+});
+
+onMounted(() => {
+  void timelineStore.fetchEvents();
+});
+
+function resetForm() {
+  formData.value = {
+    sort_order: 0,
+    is_enabled: true,
+    event_date: null,
+    translations: [
+      { locale: 'en', title: '', description: null },
+      { locale: 'ar', title: '', description: null },
+      { locale: 'ckb', title: '', description: null },
+    ],
+    image_files: [],
+    existing_images: [],
+  };
+}
+
+function openCreateDialog() {
+  isEditing.value = false;
+  editingId.value = null;
+  resetForm();
+  showDialog.value = true;
+}
+
+function openEditDialog(event: TimelineEventFull) {
+  isEditing.value = true;
+  editingId.value = event.id;
+
+  const map = new Map(
+    event.translations.map((t) => [
+      t.locale,
+      { locale: t.locale, title: t.title || '', description: t.description || null },
+    ])
+  );
+
+  const requiredLocales = ['en', 'ar', 'ckb'];
+  const translations = requiredLocales.map((locale) => {
+    return (
+      map.get(locale) || {
+        locale,
+        title: '',
+        description: null,
+      }
+    );
+  });
+
+  formData.value = {
+    sort_order: event.sort_order,
+    is_enabled: event.is_enabled,
+    event_date: event.event_date || null,
+    translations,
+    image_files: [],
+    existing_images: event.images || [],
+  };
+
+  showDialog.value = true;
+}
+
+async function handleSubmit() {
+  try {
+    if (isEditing.value && editingId.value) {
+      await timelineStore.updateEvent(editingId.value, formData.value);
+      $q.notify({ type: 'positive', message: 'Timeline event updated', position: 'top' });
+    } else {
+      await timelineStore.createEvent(formData.value);
+      $q.notify({ type: 'positive', message: 'Timeline event created', position: 'top' });
+    }
+
+    showDialog.value = false;
+    resetForm();
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: err instanceof Error ? err.message : 'Operation failed',
+      position: 'top',
+      timeout: 5000,
+    });
+  }
+}
+
+function confirmDelete(event: TimelineEventFull) {
+  $q.dialog({
+    title: 'Delete Timeline Event',
+    message: 'Are you sure you want to delete this event? All translations will be deleted.',
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    void timelineStore
+      .deleteEvent(event.id)
+      .then(() => $q.notify({ type: 'positive', message: 'Event deleted', position: 'top' }))
+      .catch((err) =>
+        $q.notify({
+          type: 'negative',
+          message: err instanceof Error ? err.message : 'Failed to delete event',
+          position: 'top',
+        })
+      );
+  });
+}
+
+function confirmDeleteImage(imageId: string) {
+  $q.dialog({
+    title: 'Delete Image',
+    message: 'Are you sure you want to delete this image?',
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    void timelineStore
+      .deleteEventImage(imageId)
+      .then(() => $q.notify({ type: 'positive', message: 'Image deleted', position: 'top' }))
+      .catch((err) =>
+        $q.notify({
+          type: 'negative',
+          message: err instanceof Error ? err.message : 'Failed to delete image',
+          position: 'top',
+        })
+      );
+  });
+}
+
+function triggerFileInput() {
+  fileInput.value?.click();
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (target.files) addImages(Array.from(target.files));
+}
+
+function handleDrop(event: DragEvent) {
+  if (event.dataTransfer?.files) addImages(Array.from(event.dataTransfer.files));
+}
+
+function addImages(files: File[]) {
+  const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+  if (!formData.value.image_files) formData.value.image_files = [];
+  formData.value.image_files.push(...imageFiles);
+}
+
+function removeImage(index: number) {
+  if (formData.value.image_files) formData.value.image_files.splice(index, 1);
+}
+
+function getImagePreview(file: File): string {
+  return URL.createObjectURL(file);
+}
+
+function getImageUrl(bucket: string, path: string): string {
+  return makePublicUrl(bucket, path);
+}
+
+function formatDate(dateStr: string): string {
+  // Keep it stable regardless of user timezone: show the raw YYYY-MM-DD
+  return dateStr;
+}
+</script>
+
+<style lang="scss" scoped>
+@import '../css/sections/timeline.scss';
+</style>
+
+

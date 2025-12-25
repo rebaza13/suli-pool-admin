@@ -1,0 +1,274 @@
+// ============================================
+// Why We Different Section Styles
+// ============================================
+
+@import '../variables.scss';
+
+.why-page {
+  padding: $space-32;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.why-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-32;
+  padding-bottom: $space-24;
+  border-bottom: 1px solid $color-border;
+
+  .why-title {
+    font-size: $font-size-3xl;
+    font-weight: 600;
+    color: $color-primary;
+    margin: 0;
+  }
+}
+
+.why-empty {
+  text-align: center;
+  padding: $space-64 $space-32;
+
+  .empty-icon {
+    font-size: $font-size-6xl;
+    color: $color-text-soft;
+    margin-bottom: $space-24;
+  }
+
+  .empty-title {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $color-text;
+    margin-bottom: $space-12;
+  }
+
+  .empty-text {
+    color: $color-text-soft;
+    margin-bottom: $space-32;
+  }
+}
+
+.why-list {
+  display: grid;
+  gap: $space-24;
+}
+
+.why-card {
+  background: $color-white;
+  border-radius: $radius-16;
+  box-shadow: 0 1px 3px rgba($color-black, 0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba($color-black, 0.15);
+  }
+}
+
+.card-header {
+  padding: $space-24;
+  background: linear-gradient(180deg, rgba($color-secondary, 0.05) 0%, transparent 100%);
+  border-bottom: 1px solid $color-border;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-16;
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: $space-16;
+    flex-wrap: wrap;
+  }
+
+  .order-badge {
+    background: $color-secondary;
+    color: $color-white;
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-pill;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: $font-size-sm;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: $space-8;
+    font-size: $font-size-sm;
+    font-weight: 600;
+
+    &.active {
+      color: #21ba45;
+    }
+
+    &.inactive {
+      color: $color-text-soft;
+    }
+  }
+
+  .icon-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-8;
+    padding: $space-4 $space-12;
+    border-radius: $radius-pill;
+    background: rgba($color-primary, 0.08);
+    color: $color-primary;
+    font-weight: 600;
+    font-size: $font-size-sm;
+    max-width: 520px;
+
+    .icon-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: $space-8;
+  }
+}
+
+.card-content {
+  padding: $space-24;
+  display: grid;
+  gap: $space-24;
+}
+
+.translations {
+  .section-title {
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $color-primary;
+    margin-bottom: $space-16;
+    padding-bottom: $space-12;
+    border-bottom: 1px solid $color-border;
+  }
+
+  .translations-list {
+    display: grid;
+    gap: $space-16;
+  }
+
+  .translation-item {
+    padding: $space-20;
+    background: $color-bg;
+    border-radius: $radius-12;
+    border: 1px solid $color-border;
+
+    .translation-header {
+      margin-bottom: $space-12;
+
+      .locale-badge {
+        background: $color-primary;
+        color: $color-white;
+        padding: $space-4 $space-12;
+        border-radius: $radius-8;
+        font-size: $font-size-xs;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+    }
+
+    .translation-fields {
+      display: grid;
+      gap: $space-8;
+      color: $color-text;
+    }
+  }
+}
+
+.why-form {
+  .form-section {
+    margin-bottom: $space-32;
+    padding-bottom: $space-24;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-title {
+      font-size: $font-size-xl;
+      font-weight: 600;
+      color: $color-primary;
+      margin-bottom: $space-24;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: $space-16;
+    margin-bottom: $space-20;
+  }
+
+  .why-icon-field {
+    display: grid;
+    gap: $space-8;
+    align-content: start;
+
+    .icon-preview-line {
+      display: flex;
+      align-items: center;
+      gap: $space-12;
+      min-height: 32px;
+
+      .icon-chip {
+        border-radius: $radius-12;
+        padding: $space-6 $space-12;
+        font-weight: 700;
+        max-width: 100%;
+
+        .chip-text {
+          display: inline-block;
+          max-width: 220px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .icon-hint {
+        color: $color-text-soft;
+        font-size: $font-size-sm;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: $bp-md) {
+  .why-page {
+    padding: $space-16;
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .why-page {
+    padding: $space-12;
+  }
+
+  .why-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+  }
+
+  .why-form {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+
