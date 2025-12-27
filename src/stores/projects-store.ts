@@ -126,7 +126,7 @@ export const useProjectsStore = defineStore('projects', () => {
     error.value = null;
 
     try {
-      const { data: project, error: insertError } = await supabase
+      const { data: project, error: insertError} = await supabase
         .from('projects')
         .insert({
           slug: formData.slug,
@@ -276,7 +276,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
       const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `project_${projectId}_${Date.now()}_${i}.${fileExt}`;
-      const filePath = `projects/${fileName}`;
+      const filePath = `gallery/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('site-images')
@@ -344,6 +344,14 @@ export const useProjectsStore = defineStore('projects', () => {
 
     const mediaAsset = (img as { media_asset?: MediaAsset }).media_asset;
 
+    // 1) Delete from project_images FIRST (removes foreign key reference)
+    const { error: linkDeleteError } = await supabase
+      .from('project_images')
+      .delete()
+      .eq('id', imageId);
+    if (linkDeleteError) throw linkDeleteError;
+
+    // 2) Delete file from storage
     if (mediaAsset?.bucket && mediaAsset?.path) {
       const { error: storageError } = await supabase.storage
         .from(mediaAsset.bucket)
@@ -351,6 +359,7 @@ export const useProjectsStore = defineStore('projects', () => {
       if (storageError) console.warn('Error deleting file from storage:', storageError);
     }
 
+    // 3) Delete from media_assets LAST (now safe, no FK references)
     if (mediaAsset?.id) {
       const { error: mediaDeleteError } = await supabase
         .from('media_assets')
@@ -358,12 +367,6 @@ export const useProjectsStore = defineStore('projects', () => {
         .eq('id', mediaAsset.id);
       if (mediaDeleteError) throw mediaDeleteError;
     }
-
-    const { error: linkDeleteError } = await supabase
-      .from('project_images')
-      .delete()
-      .eq('id', imageId);
-    if (linkDeleteError) throw linkDeleteError;
 
     await fetchProjects();
   }

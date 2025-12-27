@@ -27,7 +27,7 @@ export interface TimelineImage {
   id: string;
   sort_order: number;
   media_id: number;
-  media_asset?: MediaAsset;
+  media_asset?: MediaAsset | undefined;
   // fk column is dynamic (timeline_item_id / timeline_event_id / timeline_id)
   [key: string]: unknown;
 }

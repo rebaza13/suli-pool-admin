@@ -151,7 +151,11 @@ export interface Database {
           installation_id: number;
           locale: string;
           title: string;
+          subtitle: string | null;
           description: string | null;
+          overview_title: string | null;
+          overview_description: string | null;
+          meta_items: string[] | null;
           created_at: string;
         };
         Insert: Omit<Database['public']['Tables']['installation_translations']['Row'], 'id' | 'created_at'>;

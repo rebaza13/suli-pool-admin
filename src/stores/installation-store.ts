@@ -28,7 +28,11 @@ export interface InstallationTranslation {
   installation_id: number;
   locale: string;
   title: string;
+  subtitle: string | null;
   description: string | null;
+  overview_title: string | null;
+  overview_description: string | null;
+  meta_items: string[] | null;
   created_at: string;
 }
 
@@ -38,7 +42,7 @@ export interface InstallationImageLink {
   media_id: number;
   sort_order: number;
   created_at: string;
-  media_asset?: MediaAsset;
+  media_asset?: MediaAsset | undefined;
 }
 
 export interface InstallationFull extends Installation {
@@ -158,7 +162,11 @@ export const useInstallationStore = defineStore('installation', () => {
           [schema.translationsFkColumn]: installationId,
           locale: t.locale,
           title: t.title,
+          subtitle: t.subtitle || null,
           description: t.description || null,
+          overview_title: t.overview_title || null,
+          overview_description: t.overview_description || null,
+          meta_items: t.meta_items || null,
         }));
 
         const { error: translationsError } = await supabase
@@ -218,7 +226,11 @@ export const useInstallationStore = defineStore('installation', () => {
             [schema.translationsFkColumn]: id,
             locale: t.locale,
             title: t.title,
+            subtitle: t.subtitle || null,
             description: t.description || null,
+            overview_title: t.overview_title || null,
+            overview_description: t.overview_description || null,
+            meta_items: t.meta_items || null,
           }));
 
           const { error: insertError } = await supabase
@@ -298,7 +310,7 @@ export const useInstallationStore = defineStore('installation', () => {
 
       const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `installation_${Date.now()}_${i}.${fileExt}`;
-      const filePath = `installation/${fileName}`;
+      const filePath = `installations/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('site-images')
@@ -348,18 +360,21 @@ export const useInstallationStore = defineStore('installation', () => {
       mediaAsset = asset as MediaAsset;
     }
 
+    // 1) Delete from installation_images FIRST (removes foreign key reference)
+    const { error: linkDeleteError } = await supabase.from(imagesSchema.imagesTable).delete().eq('id', imageId);
+    if (linkDeleteError) throw linkDeleteError;
+
+    // 2) Delete file from storage
     if (mediaAsset?.bucket && mediaAsset?.path) {
       const { error: storageError } = await supabase.storage.from(mediaAsset.bucket).remove([mediaAsset.path]);
       if (storageError) console.warn('Error deleting file from storage:', storageError);
     }
 
+    // 3) Delete from media_assets LAST (now safe, no FK references)
     if (mediaAsset?.id) {
       const { error: mediaDeleteError } = await supabase.from('media_assets').delete().eq('id', mediaAsset.id);
       if (mediaDeleteError) throw mediaDeleteError;
     }
-
-    const { error: linkDeleteError } = await supabase.from(imagesSchema.imagesTable).delete().eq('id', imageId);
-    if (linkDeleteError) throw linkDeleteError;
 
     await fetchInstallations();
   }

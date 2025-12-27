@@ -2,6 +2,7 @@
 // Installation Section Styles
 // ============================================
 
+@use 'sass:color';
 @import '../variables.scss';
 
 .installation-page {
@@ -317,7 +318,7 @@
       position: absolute;
       top: $space-12;
       left: $space-12;
-      background: linear-gradient(135deg, $color-secondary 0%, darken($color-secondary, 10%) 100%);
+  background: linear-gradient(135deg, $color-secondary 0%, color.adjust($color-secondary, $lightness: -10%) 100%);
       color: $color-white;
       padding: $space-6 $space-12;
       border-radius: $radius-pill;

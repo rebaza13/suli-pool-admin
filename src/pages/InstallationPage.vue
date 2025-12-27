@@ -61,7 +61,13 @@
                 </div>
                 <div class="translation-fields">
                   <div><strong>Title:</strong> {{ t.title }}</div>
+                  <div v-if="t.subtitle"><strong>Subtitle:</strong> {{ t.subtitle }}</div>
                   <div v-if="t.description"><strong>Description:</strong> {{ t.description }}</div>
+                  <div v-if="t.overview_title"><strong>Overview Title:</strong> {{ t.overview_title }}</div>
+                  <div v-if="t.overview_description"><strong>Overview:</strong> {{ t.overview_description }}</div>
+                  <div v-if="t.meta_items && t.meta_items.length">
+                    <strong>Meta:</strong> {{ t.meta_items.join(' • ') }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -133,7 +139,7 @@
               <h3 class="section-title">Translations</h3>
 
               <div
-                v-for="(t, index) in formData.translations"
+                v-for="(t, index) in translationDrafts"
                 :key="index"
                 class="translation-item q-mb-md"
               >
@@ -142,20 +148,50 @@
                 </div>
 
                 <div class="translation-fields">
-                  <q-input
-                    v-model="t.title"
-                    label="Title"
-                    outlined
-                    :rules="[val => !!val || 'Title is required']"
-                    class="q-mb-md"
-                  />
+                  <div class="grid-2">
+                    <q-input
+                      v-model="t.title"
+                      label="Title"
+                      outlined
+                      :rules="[val => !!val || 'Title is required']"
+                    />
+                    <q-input
+                      v-model="t.subtitle"
+                      label="Subtitle"
+                      outlined
+                      hint="Optional subheading"
+                    />
+                  </div>
                   <q-input
                     v-model="t.description"
-                    label="Description"
+                    label="Description (brief)"
                     type="textarea"
                     outlined
-                    rows="4"
-                    class="q-mb-md"
+                    rows="3"
+                    class="q-mt-md"
+                  />
+                  <div class="grid-2 q-mt-md">
+                    <q-input
+                      v-model="t.overview_title"
+                      label="Overview Title"
+                      outlined
+                      hint="e.g. Project Overview"
+                    />
+                    <q-input
+                      v-model="t.meta_items_text"
+                      label="Meta Items"
+                      outlined
+                      hint="Comma separated: 50m², 6 weeks, LED"
+                    />
+                  </div>
+                  <q-input
+                    v-model="t.overview_description"
+                    label="Overview Description (detailed)"
+                    type="textarea"
+                    outlined
+                    rows="5"
+                    class="q-mt-md"
+                    hint="Long description for detail page"
                   />
                 </div>
               </div>
@@ -235,7 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import {
   useInstallationStore,
@@ -259,9 +295,9 @@ const formData = ref<InstallationFormData>({
   location: null,
   completed_at: null,
   translations: [
-    { locale: 'en', title: '', description: null },
-    { locale: 'ar', title: '', description: null },
-    { locale: 'ckb', title: '', description: null },
+    { locale: 'en', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
+    { locale: 'ar', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
+    { locale: 'ckb', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
   ],
   existing_images: [],
 });
@@ -277,9 +313,9 @@ function resetForm() {
     location: null,
     completed_at: null,
     translations: [
-      { locale: 'en', title: '', description: null },
-      { locale: 'ar', title: '', description: null },
-      { locale: 'ckb', title: '', description: null },
+      { locale: 'en', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
+      { locale: 'ar', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
+      { locale: 'ckb', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
     ],
     existing_images: [],
   };
@@ -300,7 +336,15 @@ function openEditDialog(installation: InstallationFull) {
   const map = new Map(
     installation.translations.map((t) => [
       t.locale,
-      { locale: t.locale, title: t.title || '', description: t.description || null },
+      {
+        locale: t.locale,
+        title: t.title || '',
+        subtitle: t.subtitle || null,
+        description: t.description || null,
+        overview_title: t.overview_title || null,
+        overview_description: t.overview_description || null,
+        meta_items: t.meta_items || null,
+      },
     ])
   );
 
@@ -310,7 +354,11 @@ function openEditDialog(installation: InstallationFull) {
       map.get(locale) || {
         locale,
         title: '',
+        subtitle: null,
         description: null,
+        overview_title: null,
+        overview_description: null,
+        meta_items: null,
       }
     );
   });
@@ -424,6 +472,30 @@ function getImagePreview(file: File): string {
 
 function getImageUrl(bucket: string, path: string): string {
   return makePublicUrl(bucket, path);
+}
+
+// Add reactive drafts for meta_items text input
+const translationDrafts = computed({
+  get: () => formData.value.translations.map((t) => ({
+    ...t,
+    meta_items_text: t.meta_items?.join(', ') || '',
+  })),
+  set: (drafts) => {
+    formData.value.translations = drafts.map((d) => ({
+      locale: d.locale,
+      title: d.title,
+      subtitle: d.subtitle,
+      description: d.description,
+      overview_title: d.overview_title,
+      overview_description: d.overview_description,
+      meta_items: parseMetaItems(d.meta_items_text),
+    }));
+  },
+});
+
+function parseMetaItems(text: string): string[] | null {
+  const items = text.split(',').map((s) => s.trim()).filter(Boolean);
+  return items.length ? items : null;
 }
 </script>
 

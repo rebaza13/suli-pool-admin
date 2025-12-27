@@ -123,6 +123,7 @@ const menuItems = [
   { label: 'Projects', icon: 'folder', path: '/projects' },
   { label: 'Locations', icon: 'place', path: '/locations' },
   { label: 'Timeline', icon: 'timeline', path: '/timeline' },
+  { label: 'Social Media', icon: 'share', path: '/social-media' },
 ];
 
 function toggleLeftDrawer() {
@@ -221,6 +222,20 @@ function handleLogout() {
 
   .header-logo {
     height: 24px;
+  }
+}
+
+// Mobile hamburger menu button - always visible and prominent
+@media (max-width: 1024px) {
+  .header-toolbar {
+    .q-btn[aria-label="Menu"] {
+      background-color: rgba($color-secondary, 0.1);
+      color: $color-secondary;
+      
+      &:hover {
+        background-color: rgba($color-secondary, 0.2);
+      }
+    }
   }
 }
 </style>

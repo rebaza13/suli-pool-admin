@@ -19,6 +19,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'timeline', component: () => import('pages/TimelinePage.vue') },
       { path: 'why-we-different', component: () => import('pages/WhyWeDifferentPage.vue') },
       { path: 'company-statistics', component: () => import('pages/CompanyStatisticsPage.vue') },
+      { path: 'social-media', component: () => import('pages/SocialMediaPage.vue') },
     ],
   },
 
