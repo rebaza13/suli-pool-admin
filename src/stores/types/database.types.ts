@@ -137,7 +137,7 @@ export interface Database {
       installations: {
         Row: {
           id: number;
-          completed_at: string | null;
+          completed_at: string;
           is_enabled: boolean;
           sort_order: number;
           location: string | null;
@@ -209,15 +209,15 @@ export interface Database {
           id: string;
           about_section_id: string;
           locale: string;
-          eyebrow_text: string;
-          section_title: string;
-          section_subtitle: string;
-          description: string;
-          card_title: string;
-          card_title_highlight: string;
-          card_description: string;
-          cta_label: string;
-          cta_href: string;
+          eyebrow_text: string | null;
+          section_title: string | null;
+          section_subtitle: string | null;
+          description: string | null;
+          card_title: string | null;
+          card_title_highlight: string | null;
+          card_description: string | null;
+          cta_label: string | null;
+          cta_href: string | null;
         };
         Insert: Omit<Database['public']['Tables']['about_section_translations']['Row'], 'id'>;
         Update: Partial<Database['public']['Tables']['about_section_translations']['Insert']>;
@@ -333,7 +333,7 @@ export interface Database {
           id: string;
           sort_order: number;
           is_enabled: boolean;
-          event_date: string | null;
+          year: number;
           created_at: string;
         };
         Insert: Omit<Database['public']['Tables']['timeline_items']['Row'], 'id' | 'created_at'>;

@@ -198,6 +198,7 @@
                     v-if="img.media_asset"
                     :src="getImageUrl(img.media_asset.bucket, img.media_asset.path)"
                     :alt="img.media_asset.alt || 'Project image'"
+                    style="max-width: 400px; max-height: 300px; object-fit: cover;"
                   />
                   <div class="image-order-badge">{{ index + 1 }}</div>
                   <div v-if="img.is_cover" class="cover-badge">Cover</div>
@@ -227,7 +228,7 @@
               <!-- New Images -->
               <div v-if="imageFiles.length > 0" class="images-grid q-mb-md">
                 <div v-for="(file, index) in imageFiles" :key="`new-${index}`" class="image-item">
-                  <img :src="getImagePreview(file)" :alt="file.name" />
+                  <img :src="getImagePreview(file)" :alt="file.name" style="max-width: 400px; max-height: 300px; object-fit: cover;" />
                   <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
                   <div class="image-overlay">
                     <div class="image-actions">

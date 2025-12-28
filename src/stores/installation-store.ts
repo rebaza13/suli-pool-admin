@@ -17,7 +17,7 @@ export interface MediaAsset {
 
 export interface Installation {
   id: number;
-  completed_at: string | null;
+  completed_at: string;
   is_enabled: boolean;
   sort_order: number;
   location: string | null;
@@ -54,7 +54,7 @@ export interface InstallationFormData {
   sort_order: number;
   is_enabled: boolean;
   location: string | null;
-  completed_at: string | null;
+  completed_at: string;
   translations: Array<Omit<InstallationTranslation, 'id' | 'installation_id' | 'created_at'>>;
   image_files?: File[];
   existing_images?: InstallationImageLink[];
@@ -147,7 +147,7 @@ export const useInstallationStore = defineStore('installation', () => {
           sort_order: formData.sort_order,
           is_enabled: formData.is_enabled,
           location: formData.location || null,
-          completed_at: formData.completed_at || null,
+          completed_at: formData.completed_at,
         })
         .select()
         .single();

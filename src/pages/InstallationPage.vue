@@ -42,6 +42,10 @@
               <q-icon name="place" size="16px" />
               <span>{{ installation.location }}</span>
             </div>
+            <div v-if="installation.completed_at" class="date-badge">
+              <q-icon name="event" size="16px" />
+              <span>{{ formatDate(installation.completed_at) }}</span>
+            </div>
           </div>
 
           <div class="step-actions">
@@ -130,6 +134,14 @@
                   outlined
                   :rules="[val => val >= 0 || 'Order must be 0 or greater']"
                 />
+                <q-input 
+                  v-model="formData.completed_at" 
+                  type="date" 
+                  label="Completion Date" 
+                  outlined 
+                  hint="Date when installation was completed"
+                  :rules="[val => !!val || 'Completion date is required']"
+                />
                 <q-input v-model="formData.location" label="Location" outlined hint="Optional" />
                 <q-toggle v-model="formData.is_enabled" label="Enabled" color="secondary" />
               </div>
@@ -139,7 +151,7 @@
               <h3 class="section-title">Translations</h3>
 
               <div
-                v-for="(t, index) in translationDrafts"
+                v-for="(t, index) in formData.translations"
                 :key="index"
                 class="translation-item q-mb-md"
               >
@@ -178,7 +190,7 @@
                       hint="e.g. Project Overview"
                     />
                     <q-input
-                      v-model="t.meta_items_text"
+                      v-model="metaItemsText[t.locale]"
                       label="Meta Items"
                       outlined
                       hint="Comma separated: 50m², 6 weeks, LED"
@@ -210,6 +222,7 @@
                     v-if="img.media_asset"
                     :src="getImageUrl(img.media_asset.bucket, img.media_asset.path)"
                     :alt="img.media_asset.alt || 'Installation image'"
+                    style="max-width: 400px; max-height: 300px; object-fit: cover;"
                   />
                   <div class="image-order-badge">{{ index + 1 }}</div>
                   <div class="image-overlay">
@@ -230,7 +243,7 @@
               <!-- New Images -->
               <div v-if="imageFiles.length > 0" class="images-grid q-mb-md">
                 <div v-for="(file, index) in imageFiles" :key="`new-${index}`" class="image-item">
-                  <img :src="getImagePreview(file)" :alt="file.name" />
+                  <img :src="getImagePreview(file)" :alt="file.name" style="max-width: 400px; max-height: 300px; object-fit: cover;" />
                   <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
                   <div class="image-overlay">
                     <div class="image-actions">
@@ -271,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import {
   useInstallationStore,
@@ -289,17 +302,31 @@ const editingId = ref<number | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const imageFiles = ref<File[]>([]);
 
+// Get today's date in YYYY-MM-DD format
+const getTodayDate = (): string => {
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0];
+  return dateStr || '';
+};
+
 const formData = ref<InstallationFormData>({
   sort_order: 0,
   is_enabled: true,
   location: null,
-  completed_at: null,
+  completed_at: getTodayDate(),
   translations: [
     { locale: 'en', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
     { locale: 'ar', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
     { locale: 'ckb', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
   ],
   existing_images: [],
+});
+
+// Separate reactive object for meta_items text inputs
+const metaItemsText = ref<Record<string, string>>({
+  en: '',
+  ar: '',
+  ckb: '',
 });
 
 onMounted(() => {
@@ -311,13 +338,18 @@ function resetForm() {
     sort_order: 0,
     is_enabled: true,
     location: null,
-    completed_at: null,
+    completed_at: getTodayDate(),
     translations: [
       { locale: 'en', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
       { locale: 'ar', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
       { locale: 'ckb', title: '', subtitle: null, description: null, overview_title: null, overview_description: null, meta_items: null },
     ],
     existing_images: [],
+  };
+  metaItemsText.value = {
+    en: '',
+    ar: '',
+    ckb: '',
   };
 }
 
@@ -367,25 +399,41 @@ function openEditDialog(installation: InstallationFull) {
     sort_order: installation.sort_order,
     is_enabled: installation.is_enabled,
     location: installation.location || null,
-    completed_at: installation.completed_at || null,
+    completed_at: installation.completed_at,
     translations,
     existing_images: installation.images || [],
   };
 
+  // Set meta_items_text from translations
+  metaItemsText.value = {
+    en: map.get('en')?.meta_items?.join(', ') ?? '',
+    ar: map.get('ar')?.meta_items?.join(', ') ?? '',
+    ckb: map.get('ckb')?.meta_items?.join(', ') ?? '',
+  };
+
+  imageFiles.value = [];
   showDialog.value = true;
 }
 
 async function handleSubmit() {
   try {
+    // Parse meta_items from text inputs before submitting
+    const translationsWithMeta = formData.value.translations.map((t) => ({
+      ...t,
+      meta_items: parseMetaItems(metaItemsText.value[t.locale] ?? ''),
+    }));
+
     if (isEditing.value && editingId.value) {
       await installationStore.updateInstallation(editingId.value, {
         ...formData.value,
+        translations: translationsWithMeta,
         image_files: imageFiles.value,
       });
       $q.notify({ type: 'positive', message: 'Installation updated', position: 'top' });
     } else {
       await installationStore.createInstallation({
         ...formData.value,
+        translations: translationsWithMeta,
         image_files: imageFiles.value,
       });
       $q.notify({ type: 'positive', message: 'Installation created', position: 'top' });
@@ -474,28 +522,16 @@ function getImageUrl(bucket: string, path: string): string {
   return makePublicUrl(bucket, path);
 }
 
-// Add reactive drafts for meta_items text input
-const translationDrafts = computed({
-  get: () => formData.value.translations.map((t) => ({
-    ...t,
-    meta_items_text: t.meta_items?.join(', ') || '',
-  })),
-  set: (drafts) => {
-    formData.value.translations = drafts.map((d) => ({
-      locale: d.locale,
-      title: d.title,
-      subtitle: d.subtitle,
-      description: d.description,
-      overview_title: d.overview_title,
-      overview_description: d.overview_description,
-      meta_items: parseMetaItems(d.meta_items_text),
-    }));
-  },
-});
-
+// Helper function to parse comma-separated meta items
 function parseMetaItems(text: string): string[] | null {
   const items = text.split(',').map((s) => s.trim()).filter(Boolean);
   return items.length ? items : null;
+}
+
+// Format date for display
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 </script>
 

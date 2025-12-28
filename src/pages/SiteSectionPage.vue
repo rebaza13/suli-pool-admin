@@ -2,14 +2,6 @@
   <q-page class="site-section-page">
     <div class="site-section-header">
       <h1 class="site-section-title">Site Sections Management</h1>
-      <div class="site-section-actions">
-        <q-btn
-          color="secondary"
-          icon="add"
-          label="Add Site Section"
-          @click="openCreateDialog"
-        />
-      </div>
     </div>
 
     <!-- Loading State -->
@@ -26,9 +18,8 @@
     <!-- Empty State -->
     <div v-else-if="siteSectionStore.siteSections.length === 0" class="site-section-empty-state">
       <q-icon name="web" class="empty-icon" />
-      <h2 class="empty-title">No Site Sections Yet</h2>
-      <p class="empty-text">Create your first site section to get started</p>
-      <q-btn color="secondary" icon="add" label="Add Site Section" @click="openCreateDialog" />
+      <h2 class="empty-title">No Site Sections</h2>
+      <p class="empty-text">No site sections available</p>
     </div>
 
     <!-- Site Sections List -->
@@ -56,14 +47,6 @@
               icon="edit"
               color="secondary"
               @click="openEditDialog(section)"
-            />
-            <q-btn
-              flat
-              dense
-              round
-              icon="delete"
-              color="negative"
-              @click="confirmDelete(section)"
             />
           </div>
         </div>
@@ -248,6 +231,7 @@
                     v-if="image.media_asset"
                     :src="getImageUrl(image.media_asset.bucket, image.media_asset.path)"
                     :alt="image.media_asset.alt || 'Site section image'"
+                    style="max-width: 400px; max-height: 300px; object-fit: cover;"
                   />
                   <div class="image-order-badge">{{ index + 1 }}</div>
                   <div class="image-overlay">
@@ -275,7 +259,7 @@
                   :key="`new-${index}`"
                   class="image-item"
                 >
-                  <img :src="getImagePreview(file)" :alt="file.name" />
+                  <img :src="getImagePreview(file)" :alt="file.name" style="max-width: 400px; max-height: 300px; object-fit: cover;" />
                   <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
                   <div class="image-overlay">
                     <div class="image-actions">
@@ -360,12 +344,7 @@ onMounted(() => {
   void siteSectionStore.fetchSiteSections();
 });
 
-function openCreateDialog() {
-  isEditing.value = false;
-  editingId.value = null;
-  resetForm();
-  showDialog.value = true;
-}
+// Removed: openCreateDialog - users should not create new site sections
 
 function openEditDialog(section: SiteSectionFull) {
   isEditing.value = true;
@@ -458,28 +437,7 @@ async function handleSubmit() {
   }
 }
 
-function confirmDelete(section: SiteSectionFull) {
-  $q.dialog({
-    title: 'Delete Site Section',
-    message: `Are you sure you want to delete the section "${section.key}"? All related translations and images will be deleted.`,
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    void siteSectionStore.deleteSiteSection(section.id).then(() => {
-      $q.notify({
-        type: 'positive',
-        message: 'Site section deleted successfully',
-        position: 'top',
-      });
-    }).catch((error) => {
-      $q.notify({
-        type: 'negative',
-        message: error instanceof Error ? error.message : 'Failed to delete site section',
-        position: 'top',
-      });
-    });
-  });
-}
+// Removed: confirmDelete - users should not delete site sections
 
 function confirmDeleteImage(image: { id: number; media_asset?: { alt?: string | null } }) {
   $q.dialog({

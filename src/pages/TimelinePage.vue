@@ -30,7 +30,7 @@
         <div class="event-header">
           <div class="event-title-section">
             <div class="event-order-badge">{{ event.sort_order }}</div>
-            <div v-if="event.event_date" class="event-date-badge">{{ formatDate(event.event_date) }}</div>
+            <div class="event-date-badge">Year: {{ event.year }}</div>
             <div class="event-status" :class="event.is_enabled ? 'active' : 'inactive'">
               <q-icon :name="event.is_enabled ? 'check_circle' : 'cancel'" />
               <span>{{ event.is_enabled ? 'Active' : 'Inactive' }}</span>
@@ -119,11 +119,12 @@
                   :rules="[val => val >= 0 || 'Order must be 0 or greater']"
                 />
                 <q-input
-                  v-model="formData.event_date"
-                  type="date"
-                  label="Event Date"
+                  v-model.number="formData.year"
+                  type="number"
+                  label="Year"
                   outlined
-                  hint="Optional"
+                  hint="e.g., 2024"
+                  :rules="[val => !!val || 'Year is required', val => val >= 1900 && val <= 2100 || 'Please enter a valid year']"
                 />
                 <q-toggle v-model="formData.is_enabled" label="Enabled" color="secondary" />
               </div>
@@ -175,6 +176,7 @@
                     v-if="img.media_asset"
                     :src="getImageUrl(img.media_asset.bucket, img.media_asset.path)"
                     :alt="img.media_asset.alt || 'Timeline image'"
+                    style="max-width: 400px; max-height: 300px; object-fit: cover;"
                   />
                   <div class="image-order-badge">{{ index + 1 }}</div>
                   <div class="image-overlay">
@@ -194,12 +196,12 @@
 
               <!-- New Images to Upload -->
               <div v-if="formData.image_files && formData.image_files.length > 0" class="images-grid q-mb-md">
-                <div
-                  v-for="(file, index) in formData.image_files"
-                  :key="`new-${index}`"
-                  class="image-item"
-                >
-                  <img :src="getImagePreview(file)" :alt="file.name" />
+              <div
+                v-for="(file, index) in formData.image_files"
+                :key="`new-${index}`"
+                class="image-item"
+              >
+                <img :src="getImagePreview(file)" :alt="file.name" style="max-width: 400px; max-height: 300px; object-fit: cover;" />
                   <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
                   <div class="image-overlay">
                     <div class="image-actions">
@@ -268,7 +270,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const formData = ref<TimelineEventFormData>({
   sort_order: 0,
   is_enabled: true,
-  event_date: null,
+  year: new Date().getFullYear(),
   translations: [
     { locale: 'en', title: '', description: null },
     { locale: 'ar', title: '', description: null },
@@ -285,7 +287,7 @@ function resetForm() {
   formData.value = {
     sort_order: 0,
     is_enabled: true,
-    event_date: null,
+    year: new Date().getFullYear(),
     translations: [
       { locale: 'en', title: '', description: null },
       { locale: 'ar', title: '', description: null },
@@ -328,7 +330,7 @@ function openEditDialog(event: TimelineEventFull) {
   formData.value = {
     sort_order: event.sort_order,
     is_enabled: event.is_enabled,
-    event_date: event.event_date || null,
+    year: event.year,
     translations,
     image_files: [],
     existing_images: event.images || [],
@@ -428,11 +430,6 @@ function getImagePreview(file: File): string {
 
 function getImageUrl(bucket: string, path: string): string {
   return makePublicUrl(bucket, path);
-}
-
-function formatDate(dateStr: string): string {
-  // Keep it stable regardless of user timezone: show the raw YYYY-MM-DD
-  return dateStr;
 }
 </script>
 

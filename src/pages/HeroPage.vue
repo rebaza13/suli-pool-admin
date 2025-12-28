@@ -225,6 +225,7 @@
                     v-if="image.media_asset"
                     :src="getImageUrl(image.media_asset.bucket, image.media_asset.path)"
                     :alt="image.media_asset.alt || 'Hero slide image'"
+                    style="max-width: 400px; max-height: 300px; object-fit: cover;"
                   />
                   <div class="image-order-badge">{{ index + 1 }}</div>
                   <div class="image-overlay">
@@ -252,7 +253,7 @@
                   :key="`new-${index}`"
                   class="image-item"
                 >
-                  <img :src="getImagePreview(file)" :alt="file.name" />
+                  <img :src="getImagePreview(file)" :alt="file.name" style="max-width: 400px; max-height: 300px; object-fit: cover;" />
                   <div class="image-order-badge">{{ (formData.existing_images?.length || 0) + index + 1 }}</div>
                   <div class="image-overlay">
                     <div class="image-actions">

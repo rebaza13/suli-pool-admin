@@ -19,7 +19,7 @@ export interface TimelineEvent {
   id: string;
   sort_order: number;
   is_enabled: boolean;
-  event_date: string | null; // Postgres date comes back as YYYY-MM-DD
+  year: number;
   created_at: string;
 }
 
@@ -49,7 +49,7 @@ export interface TimelineEventFull extends TimelineEvent {
 export interface TimelineEventFormData {
   sort_order: number;
   is_enabled: boolean;
-  event_date: string | null;
+  year: number;
   translations: Array<Omit<TimelineEventTranslation, 'id' | 'timeline_event_id' | 'created_at'>>;
   image_files?: File[];
   existing_images?: TimelineImage[];
@@ -165,7 +165,7 @@ export const useTimelineStore = defineStore('timeline', () => {
         .insert({
           sort_order: formData.sort_order,
           is_enabled: formData.is_enabled,
-          event_date: formData.event_date || null,
+          year: formData.year,
         })
         .select()
         .single();
@@ -216,7 +216,7 @@ export const useTimelineStore = defineStore('timeline', () => {
 
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
       if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
-      if (formData.event_date !== undefined) updateData.event_date = formData.event_date;
+      if (formData.year !== undefined) updateData.year = formData.year;
 
       if (Object.keys(updateData).length > 0) {
         const { error: eventError } = await supabase
