@@ -1,0 +1,292 @@
+// ============================================
+// Company & Team Section Styles
+// ============================================
+
+@import '../variables.scss';
+
+.company-team-page {
+  padding: $space-32;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $space-32;
+  padding-bottom: $space-24;
+  border-bottom: 1px solid $color-border;
+
+  .page-title {
+    font-size: $font-size-3xl;
+    font-weight: 600;
+    color: $color-primary;
+    margin: 0;
+  }
+}
+
+// About Company Section
+.about-company-section {
+  .about-form {
+    .form-section {
+      margin-bottom: $space-32;
+      padding-bottom: $space-24;
+      border-bottom: 1px solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .section-title {
+        font-size: $font-size-xl;
+        font-weight: 600;
+        color: $color-primary;
+        margin-bottom: $space-20;
+      }
+    }
+  }
+}
+
+// Team Members Section
+.team-members-section {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-24;
+
+    .section-title {
+      font-size: $font-size-2xl;
+      font-weight: 600;
+      color: $color-primary;
+      margin: 0;
+    }
+  }
+}
+
+.team-members-list {
+  display: grid;
+  gap: $space-20;
+}
+
+.team-member-card {
+  background: $color-white;
+  border-radius: $radius-16;
+  box-shadow: 0 1px 3px rgba($color-black, 0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba($color-black, 0.15);
+  }
+
+  .member-header {
+    padding: $space-24;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $space-20;
+  }
+
+  .member-info {
+    display: flex;
+    gap: $space-20;
+    flex: 1;
+
+    .member-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: $radius-12;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .q-icon {
+        color: $color-text-soft;
+      }
+    }
+
+    .member-details {
+      flex: 1;
+
+      .member-name {
+        font-size: $font-size-xl;
+        font-weight: 600;
+        color: $color-primary;
+        margin: 0 0 $space-12 0;
+      }
+
+      .member-positions {
+        display: grid;
+        gap: $space-8;
+        margin-bottom: $space-12;
+
+        div {
+          font-size: $font-size-md;
+          color: $color-text;
+
+          strong {
+            color: $color-text-soft;
+            margin-right: $space-8;
+          }
+        }
+      }
+
+      .member-meta {
+        display: flex;
+        gap: $space-12;
+        align-items: center;
+
+        .order-badge {
+          background: rgba($color-secondary, 0.1);
+          color: $color-secondary;
+          padding: $space-4 $space-12;
+          border-radius: $radius-pill;
+          font-size: $font-size-sm;
+          font-weight: 600;
+        }
+
+        .status-badge {
+          display: flex;
+          align-items: center;
+          gap: $space-8;
+          font-size: $font-size-sm;
+          font-weight: 500;
+
+          &.active {
+            color: #21ba45;
+          }
+
+          &.inactive {
+            color: $color-text-soft;
+          }
+        }
+      }
+    }
+  }
+
+  .member-actions {
+    display: flex;
+    gap: $space-8;
+  }
+}
+
+// Team Form
+.team-form {
+  .form-section {
+    margin-bottom: $space-32;
+    padding-bottom: $space-24;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-title {
+      font-size: $font-size-xl;
+      font-weight: 600;
+      color: $color-primary;
+      margin-bottom: $space-20;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: $space-16;
+
+      @media (max-width: $bp-sm) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .image-preview {
+    width: 200px;
+    height: 200px;
+    border-radius: $radius-12;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: 2px solid $color-border;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: $space-64 $space-32;
+
+  .empty-icon {
+    font-size: $font-size-6xl;
+    color: $color-text-soft;
+    margin-bottom: $space-24;
+  }
+
+  .empty-title {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $color-text;
+    margin-bottom: $space-12;
+  }
+
+  .empty-text {
+    color: $color-text-soft;
+    margin-bottom: $space-32;
+  }
+}
+
+// Responsive
+@media (max-width: $bp-md) {
+  .company-team-page {
+    padding: $space-16;
+  }
+
+  .team-members-section {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $space-16;
+    }
+  }
+
+  .team-member-card {
+    .member-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .member-info {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .member-actions {
+      justify-content: flex-end;
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .company-team-page {
+    padding: $space-12;
+  }
+}
+

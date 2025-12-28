@@ -15,6 +15,15 @@
 @import './sections/why.scss';
 @import './sections/about.scss';
 @import './sections/stats.scss';
+@import './sections/company-team.scss';
+
+// Fixed drawer styles
+.q-drawer--left {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
+}
 
 // Global styles
 body {

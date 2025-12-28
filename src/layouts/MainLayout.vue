@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpR fFf" class="dashboard-layout">
+  <q-layout view="hHh LpR fFf" class="dashboard-layout">
     <q-header  class="dashboard-header">
       <q-toolbar class="header-toolbar">
         <q-btn
@@ -56,6 +56,7 @@
       class="dashboard-drawer"
       :width="280"
       :mini-width="70"
+      behavior="desktop"
     >
       <div class="sidebar">
         <div class="sidebar-header">
@@ -124,6 +125,8 @@ const menuItems = [
   { label: 'Locations', icon: 'place', path: '/locations' },
   { label: 'Timeline', icon: 'timeline', path: '/timeline' },
   { label: 'Social Media', icon: 'share', path: '/social-media' },
+  { label: 'Site Sections', icon: 'web', path: '/site-sections' },
+  { label: 'Company & Team', icon: 'business', path: '/company-team' },
 ];
 
 function toggleLeftDrawer() {
