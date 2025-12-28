@@ -47,7 +47,7 @@
 // ============================================
 
 .sidebar {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba($color-secondary, 0.04) 0%, transparent 35%);
@@ -62,8 +62,6 @@
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
   background-color: $color-white;
   z-index: 10;
 
@@ -95,7 +93,31 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: $space-16 0;
+  min-height: 0; // Important for flex scrolling
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($color-text-soft, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba($color-text-soft, 0.5);
+    }
+  }
+
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: rgba($color-text-soft, 0.3) transparent;
 }
 
 .sidebar-menu {
