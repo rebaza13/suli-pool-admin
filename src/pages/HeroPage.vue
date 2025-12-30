@@ -136,7 +136,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="hero-form-card" style="min-width: 800px; max-width: 90vw">
+      <q-card class="hero-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Hero Slide</div>
           <q-space />

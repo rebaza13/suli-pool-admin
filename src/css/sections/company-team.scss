@@ -284,9 +284,68 @@
   }
 }
 
+@media (max-width: $bp-md) {
+  .company-team-page {
+    padding: $space-16;
+  }
+  
+  .page-header {
+    .page-title {
+      font-size: $font-size-xl;
+    }
+  }
+  
+  .team-form-card {
+    .q-card-section {
+      padding: $space-16;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+  }
+  
+  .about-form,
+  .team-form {
+    .form-section {
+      margin-bottom: $space-24;
+      padding-bottom: $space-16;
+    }
+    
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+    }
+    
+    .grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
 @media (max-width: $bp-sm) {
   .company-team-page {
     padding: $space-12;
+  }
+  
+  .team-form-card {
+    margin: $space-8;
+    border-radius: $radius-12;
+    
+    .q-card-section {
+      padding: $space-12;
+      max-height: calc(100vh - 80px);
+    }
+  }
+  
+  .team-form {
+    .form-section {
+      margin-bottom: $space-20;
+      padding-bottom: $space-12;
+      
+      .section-title {
+        font-size: $font-size-md;
+        margin-bottom: $space-12;
+      }
+    }
   }
 }
 

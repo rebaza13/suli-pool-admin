@@ -36,6 +36,7 @@ export interface TimelineEventTranslation {
   id: string;
   timeline_event_id: string;
   locale: string;
+  label: string | null;
   title: string;
   description: string | null;
   created_at: string;
@@ -179,6 +180,7 @@ export const useTimelineStore = defineStore('timeline', () => {
         const translationsToInsert = formData.translations.map((t) => ({
           [schema.translationsFkColumn]: eventId,
           locale: t.locale,
+          label: t.label || null,
           title: t.title,
           description: t.description || null,
         }));
@@ -239,6 +241,7 @@ export const useTimelineStore = defineStore('timeline', () => {
           const translationsToInsert = formData.translations.map((t) => ({
             [schema.translationsFkColumn]: id,
             locale: t.locale,
+            label: t.label || null,
             title: t.title,
             description: t.description || null,
           }));

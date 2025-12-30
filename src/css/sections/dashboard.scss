@@ -222,6 +222,44 @@
   .dashboard-page {
     padding: $space-16;
   }
+  
+  // On mobile, drawer should be full width when open
+  .q-drawer {
+    width: 280px !important;
+    
+    &.q-drawer--on-top {
+      z-index: 3000;
+    }
+  }
+  
+  // Hide mini toggle on mobile
+  .sidebar-toggle-btn {
+    display: none;
+  }
+  
+  .sidebar-header {
+    padding: $space-16 $space-12;
+    
+    .sidebar-title {
+      span {
+        display: block;
+      }
+    }
+    
+    // Hide mini toggle button on mobile/tablet
+    .sidebar-toggle-btn {
+      display: none;
+    }
+  }
+  
+  // Ensure sidebar menu items are properly sized on mobile
+  .sidebar-menu-item {
+    .menu-link {
+      .menu-label {
+        display: block;
+      }
+    }
+  }
 }
 
 @media (max-width: $bp-sm) {
@@ -231,12 +269,34 @@
 
   .sidebar-header {
     padding: $space-16 $space-12;
+    min-height: 56px;
+    
+    .sidebar-title {
+      font-size: $font-size-md;
+      
+      img {
+        height: 24px;
+      }
+    }
   }
 
   .sidebar-menu-item {
+    margin: $space-2 0;
+    
     .menu-link {
       padding: $space-12 $space-16;
       font-size: $font-size-sm;
+      margin: 0 $space-4;
     }
+    
+    .menu-icon {
+      font-size: $font-size-md;
+      width: 20px;
+    }
+  }
+  
+  // Ensure drawer is properly sized on mobile
+  .q-drawer {
+    width: 260px !important;
   }
 }

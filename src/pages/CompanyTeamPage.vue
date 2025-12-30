@@ -190,7 +190,7 @@
 
     <!-- Team Member Create/Edit Dialog -->
     <q-dialog v-model="showTeamDialog" persistent>
-      <q-card class="team-form-card" style="min-width: 600px; max-width: 90vw">
+      <q-card class="team-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditingTeam ? 'Edit' : 'Create' }} Team Member</div>
           <q-space />

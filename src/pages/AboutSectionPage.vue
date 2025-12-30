@@ -103,7 +103,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="about-form-card" style="min-width: 920px; max-width: 94vw">
+      <q-card class="about-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} About Block</div>
           <q-space />

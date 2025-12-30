@@ -120,7 +120,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="site-section-form-card" style="min-width: 800px; max-width: 90vw">
+      <q-card class="site-section-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Site Section</div>
           <q-space />

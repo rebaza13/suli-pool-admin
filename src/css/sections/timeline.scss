@@ -104,6 +104,15 @@
       font-size: $font-size-sm;
     }
 
+    .event-label-badge {
+      background: rgba($color-primary, 0.12);
+      color: $color-primary;
+      padding: $space-4 $space-12;
+      border-radius: $radius-pill;
+      font-weight: 600;
+      font-size: $font-size-sm;
+    }
+
     .event-status {
       display: flex;
       align-items: center;
@@ -360,12 +369,35 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: $space-16;
     margin-bottom: $space-20;
+    
+    @media (max-width: $bp-md) {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+    }
   }
 }
 
 @media (max-width: $bp-md) {
   .timeline-page {
     padding: $space-16;
+  }
+  
+  .timeline-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+    
+    .timeline-title {
+      font-size: $font-size-xl;
+    }
+  }
+  
+  .timeline-event-card {
+    .event-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $space-12;
+    }
   }
 }
 
@@ -377,7 +409,11 @@
   .timeline-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: $space-16;
+    gap: $space-12;
+    
+    .timeline-title {
+      font-size: $font-size-lg;
+    }
   }
 
   .timeline-form {

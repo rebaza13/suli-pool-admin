@@ -80,7 +80,7 @@
 
       <!-- Create/Edit Dialog -->
       <q-dialog v-model="dialogOpen" persistent>
-        <q-card class="dialog-card" style="min-width: 400px;">
+        <q-card class="dialog-card responsive-dialog-card">
           <q-card-section class="dialog-header">
             <h2 class="dialog-title">{{ isEditing ? 'Edit Social Link' : 'Add Social Link' }}</h2>
             <q-btn flat dense round icon="close" @click="closeDialog" />
@@ -424,6 +424,30 @@ function confirmDelete(link: SocialMedia) {
 .dialog-actions {
   padding: $space-16;
   border-top: 1px solid $color-border;
+}
+
+.dialog-card {
+  @media (max-width: 768px) {
+    .q-card-section {
+      padding: 16px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    margin: 8px;
+    border-radius: 12px;
+    
+    .q-card-section {
+      padding: 12px;
+      max-height: calc(100vh - 80px);
+    }
+    
+    .dialog-title {
+      font-size: 18px;
+    }
+  }
 }
 
 @media (max-width: $bp-sm) {

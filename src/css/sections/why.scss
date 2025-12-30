@@ -202,6 +202,11 @@
       font-weight: 600;
       color: $color-primary;
       margin-bottom: $space-24;
+      
+      @media (max-width: $bp-md) {
+        font-size: $font-size-lg;
+        margin-bottom: $space-16;
+      }
     }
   }
 
@@ -210,24 +215,44 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: $space-16;
     margin-bottom: $space-20;
+    
+    @media (max-width: $bp-md) {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+      margin-bottom: $space-16;
+    }
   }
-
+  
   .why-icon-field {
     display: grid;
     gap: $space-8;
     align-content: start;
+    
+    @media (max-width: $bp-md) {
+      grid-column: 1 / -1;
+    }
 
     .icon-preview-line {
       display: flex;
       align-items: center;
       gap: $space-12;
       min-height: 32px;
+      
+      @media (max-width: $bp-sm) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $space-8;
+      }
 
       .icon-chip {
         border-radius: $radius-12;
         padding: $space-6 $space-12;
         font-weight: 700;
         max-width: 100%;
+        
+        @media (max-width: $bp-sm) {
+          width: 100%;
+        }
 
         .chip-text {
           display: inline-block;
@@ -235,6 +260,10 @@
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          
+          @media (max-width: $bp-sm) {
+            max-width: 100%;
+          }
         }
       }
 
@@ -251,6 +280,23 @@
   .why-page {
     padding: $space-16;
   }
+  
+  .why-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+    
+    .why-title {
+      font-size: $font-size-xl;
+    }
+  }
+  
+  .why-form {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+    }
+  }
 }
 
 @media (max-width: $bp-sm) {
@@ -261,13 +307,104 @@
   .why-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: $space-16;
+    gap: $space-12;
+    
+    .why-title {
+      font-size: $font-size-lg;
+    }
+  }
+  
+  .why-form-card {
+    margin: $space-8;
+    border-radius: $radius-12;
+    
+    .q-card-section {
+      padding: $space-12;
+      max-height: calc(100vh - 80px);
+    }
   }
 
   .why-form {
+    .form-section {
+      margin-bottom: $space-20;
+      padding-bottom: $space-12;
+      
+      .section-title {
+        font-size: $font-size-md;
+        margin-bottom: $space-12;
+      }
+    }
+    
     .form-row {
       grid-template-columns: 1fr;
+      gap: $space-8;
+      margin-bottom: $space-12;
     }
+    
+    .translation-item {
+      padding: $space-12;
+      margin-bottom: $space-12;
+    }
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-12;
+    
+    .actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+}
+
+// Additional responsive styles for dialog card
+.why-form-card {
+  @media (max-width: $bp-md) {
+    .q-card-section {
+      padding: $space-16;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+  }
+  
+  @media (max-width: $bp-sm) {
+    margin: $space-8;
+    
+    .q-card-section {
+      padding: $space-12;
+      max-height: calc(100vh - 80px);
+    }
+  }
+}
+
+@media (max-width: $bp-md) {
+  .why-page {
+    padding: $space-16;
+  }
+  
+  .why-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+    
+    .why-title {
+      font-size: $font-size-xl;
+    }
+  }
+  
+  .why-form {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+    }
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .why-page {
+    padding: $space-12;
   }
 }
 

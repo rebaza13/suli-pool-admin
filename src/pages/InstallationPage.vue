@@ -113,9 +113,67 @@
       </div>
     </div>
 
+    <!-- Background Image Section -->
+    <div class="background-image-section q-mt-xl">
+      <div class="section-header">
+        <h2 class="section-title">Background Image</h2>
+        <p class="section-description">Set a background image for the installations section (only 1 image allowed)</p>
+      </div>
+
+      <div v-if="installationStore.backgroundImageLoading" class="text-center q-pa-md">
+        <q-spinner color="secondary" size="2em" />
+        <p class="q-mt-md text-grey-7">Loading background image...</p>
+      </div>
+
+      <div v-else-if="installationStore.backgroundImage" class="background-image-container">
+        <div class="background-image-preview">
+          <img
+            v-if="installationStore.backgroundImage.media_asset"
+            :src="getImageUrl(installationStore.backgroundImage.media_asset.bucket, installationStore.backgroundImage.media_asset.path)"
+            :alt="installationStore.backgroundImage.media_asset.alt || 'Background image'"
+            class="preview-image"
+          />
+          <div class="image-overlay">
+            <div class="image-actions">
+              <q-btn
+                round
+                dense
+                flat
+                icon="delete"
+                color="white"
+                @click="confirmDeleteBackgroundImage"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="background-image-actions q-mt-md">
+          <q-btn
+            color="secondary"
+            icon="cloud_upload"
+            label="Replace Image"
+            @click="triggerBackgroundFileInput"
+          />
+        </div>
+      </div>
+
+      <div v-else class="background-image-upload-area" @click="triggerBackgroundFileInput" @dragover.prevent @drop.prevent="handleBackgroundDrop">
+        <q-icon name="cloud_upload" class="upload-icon" />
+        <div class="upload-text">Click or drag image here to upload background image</div>
+      </div>
+
+      <!-- File input (always available, hidden) -->
+      <input
+        ref="backgroundFileInput"
+        type="file"
+        accept="image/*"
+        style="display: none"
+        @change="handleBackgroundFileSelect"
+      />
+    </div>
+
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="installation-form-card" style="min-width: 820px; max-width: 92vw">
+      <q-card class="installation-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Installation</div>
           <q-space />
@@ -301,6 +359,7 @@ const isEditing = ref(false);
 const editingId = ref<number | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const imageFiles = ref<File[]>([]);
+const backgroundFileInput = ref<HTMLInputElement | null>(null);
 
 // Get today's date in YYYY-MM-DD format
 const getTodayDate = (): string => {
@@ -331,6 +390,7 @@ const metaItemsText = ref<Record<string, string>>({
 
 onMounted(() => {
   void installationStore.fetchInstallations();
+  void installationStore.fetchBackgroundImage();
 });
 
 function resetForm() {
@@ -532,6 +592,88 @@ function parseMetaItems(text: string): string[] | null {
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Background image functions
+function triggerBackgroundFileInput() {
+  backgroundFileInput.value?.click();
+}
+
+function handleBackgroundFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      uploadBackgroundImage(file);
+    } else {
+      $q.notify({
+        type: 'negative',
+        message: 'Please select a valid image file',
+        position: 'top',
+      });
+      // Reset file input
+      if (target) {
+        target.value = '';
+      }
+    }
+  }
+}
+
+function handleBackgroundDrop(event: DragEvent) {
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      uploadBackgroundImage(file);
+    } else {
+      $q.notify({
+        type: 'negative',
+        message: 'Please drop a valid image file',
+        position: 'top',
+      });
+    }
+  }
+}
+
+async function uploadBackgroundImage(file: File) {
+  try {
+    await installationStore.uploadBackgroundImage(file);
+    $q.notify({ type: 'positive', message: 'Background image uploaded successfully', position: 'top' });
+    // Reset file input to allow selecting the same file again
+    if (backgroundFileInput.value) {
+      backgroundFileInput.value.value = '';
+    }
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: err instanceof Error ? err.message : 'Failed to upload background image',
+      position: 'top',
+      timeout: 5000,
+    });
+    // Reset file input even on error
+    if (backgroundFileInput.value) {
+      backgroundFileInput.value.value = '';
+    }
+  }
+}
+
+function confirmDeleteBackgroundImage() {
+  $q.dialog({
+    title: 'Delete Background Image',
+    message: 'Are you sure you want to delete the background image?',
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    void installationStore
+      .deleteBackgroundImage()
+      .then(() => $q.notify({ type: 'positive', message: 'Background image deleted', position: 'top' }))
+      .catch((err) =>
+        $q.notify({
+          type: 'negative',
+          message: err instanceof Error ? err.message : 'Failed to delete background image',
+          position: 'top',
+        })
+      );
+  });
 }
 </script>
 

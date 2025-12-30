@@ -51,20 +51,21 @@
       show-if-above
       :mini="miniState"
       :breakpoint="1024"
-      :overlay="false"
+      :overlay="$q.screen.lt.md"
       bordered
       class="dashboard-drawer"
       :width="280"
       :mini-width="70"
-      behavior="desktop"
+      :behavior="$q.screen.lt.md ? 'mobile' : 'desktop'"
     >
       <div class="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-title">
             <img src="/images/logo.PNG" alt="Logo" />
-            <span v-if="!miniState">Menu</span>
+            <span v-if="!miniState || $q.screen.lt.md">Menu</span>
           </div>
           <q-btn
+            v-if="$q.screen.gt.sm"
             flat
             dense
             round
@@ -102,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useQuasar } from 'quasar';
@@ -114,13 +115,19 @@ const $q = useQuasar();
 const leftDrawerOpen = ref(false);
 const miniState = ref(false);
 
+// Disable mini mode on mobile/tablet
+watch(() => $q.screen.lt.md, (isMobile) => {
+  if (isMobile) {
+    miniState.value = false;
+  }
+}, { immediate: true });
+
 const menuItems = [
   { label: 'Hero', icon: 'home', path: '/' },
   { label: 'Installation', icon: 'construction', path: '/installation' },
   { label: 'Why We Different', icon: 'verified', path: '/why-we-different' },
   { label: 'Company Stats', icon: 'bar_chart', path: '/company-statistics' },
   { label: 'About', icon: 'info', path: '/about' },
-  { label: 'Features', icon: 'star', path: '/features' },
   { label: 'Projects', icon: 'folder', path: '/projects' },
   { label: 'Locations', icon: 'place', path: '/locations' },
   { label: 'Timeline', icon: 'timeline', path: '/timeline' },
@@ -134,7 +141,10 @@ function toggleLeftDrawer() {
 }
 
 function toggleMini() {
-  miniState.value = !miniState.value;
+  // Only allow mini toggle on desktop (above mobile)
+  if ($q.screen.gt.sm) {
+    miniState.value = !miniState.value;
+  }
 }
 
 function handleMenuClick() {

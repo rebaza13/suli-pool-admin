@@ -117,7 +117,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="projects-form-card" style="min-width: 920px; max-width: 94vw">
+      <q-card class="projects-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Project</div>
           <q-space />
@@ -762,6 +762,56 @@ function getImageUrl(bucket: string, path: string) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.projects-form-card {
+  @media (max-width: 768px) {
+    .q-card-section {
+      padding: 16px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    margin: 8px;
+    border-radius: 12px;
+    
+    .q-card-section {
+      padding: 12px;
+      max-height: calc(100vh - 80px);
+    }
+  }
+}
+
+.projects-form {
+  .form-section {
+    @media (max-width: 768px) {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+    }
+    
+    @media (max-width: 640px) {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      
+      .section-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+    }
+  }
+  
+  .form-row {
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
 }
 
 @media (max-width: 640px) {

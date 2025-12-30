@@ -486,3 +486,34 @@
   }
 }
 
+@media (max-width: $bp-md) {
+  .site-section-page {
+    padding: $space-16;
+  }
+  
+  .site-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-16;
+    
+    .site-section-title {
+      font-size: $font-size-xl;
+    }
+  }
+  
+  .site-section-form {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: $space-12;
+    }
+  }
+  
+  .site-section-card {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $space-12;
+    }
+  }
+}
+

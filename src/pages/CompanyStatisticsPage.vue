@@ -50,7 +50,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="stats-form-card" style="min-width: 860px; max-width: 92vw">
+      <q-card class="stats-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Statistic</div>
           <q-space />

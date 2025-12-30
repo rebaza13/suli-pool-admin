@@ -60,3 +60,142 @@ body {
   }
 }
 
+// ============================================
+// Global Responsive Dialog Styles
+// ============================================
+
+// Make all dialogs responsive
+.q-dialog {
+  .q-card {
+    width: 100%;
+    max-width: 90vw;
+    
+    @media (min-width: $bp-md) {
+      max-width: 800px;
+    }
+    
+    @media (min-width: $bp-lg) {
+      max-width: 900px;
+    }
+  }
+  
+  // Ensure dialog content is scrollable on small screens
+  .q-card-section {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    
+    @media (max-width: $bp-md) {
+      padding: $space-16;
+      max-height: calc(100vh - 100px);
+    }
+  }
+}
+
+// Responsive dialog card class
+.responsive-dialog-card {
+  width: 100%;
+  max-width: 90vw;
+  margin: 0 auto;
+  
+  @media (min-width: $bp-md) {
+    max-width: 800px;
+  }
+  
+  @media (min-width: $bp-lg) {
+    max-width: 900px;
+  }
+  
+  @media (max-width: $bp-md) {
+    margin: $space-8;
+    border-radius: $radius-12;
+  }
+}
+
+// Responsive form rows - stack on mobile
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-16;
+  
+  @media (max-width: $bp-md) {
+    grid-template-columns: 1fr;
+    gap: $space-12;
+  }
+}
+
+// Grid layouts - responsive
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-16;
+  
+  @media (max-width: $bp-md) {
+    grid-template-columns: 1fr;
+    gap: $space-12;
+  }
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-16;
+  
+  @media (max-width: $bp-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $bp-md) {
+    grid-template-columns: 1fr;
+    gap: $space-12;
+  }
+}
+
+// Responsive images grid
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-20;
+  
+  @media (max-width: $bp-md) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $space-16;
+  }
+  
+  @media (max-width: $bp-sm) {
+    grid-template-columns: 1fr;
+    gap: $space-12;
+  }
+}
+
+// Global responsive page padding
+.q-page {
+  @media (max-width: $bp-md) {
+    padding: $space-16 !important;
+  }
+  
+  @media (max-width: $bp-sm) {
+    padding: $space-12 !important;
+  }
+}
+
+// Responsive headers - stack on mobile
+.page-header,
+.section-header {
+  @media (max-width: $bp-md) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: $space-16 !important;
+  }
+}
+
+// Responsive card headers
+.card-header,
+.event-header,
+.slide-header {
+  @media (max-width: $bp-md) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: $space-12 !important;
+  }
+}
+

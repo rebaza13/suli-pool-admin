@@ -60,6 +60,15 @@ export interface InstallationFormData {
   existing_images?: InstallationImageLink[];
 }
 
+export interface SiteSectionImage {
+  id: number;
+  section_id: number;
+  media_id: number;
+  sort_order: number;
+  created_at: string;
+  media_asset?: MediaAsset;
+}
+
 // ============================================
 // Installation Store
 // ============================================
@@ -68,6 +77,8 @@ export const useInstallationStore = defineStore('installation', () => {
   const installations = ref<InstallationFull[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const backgroundImage = ref<SiteSectionImage | null>(null);
+  const backgroundImageLoading = ref(false);
 
   const activeInstallations = computed(() => {
     const active = installations.value.filter((i) => i.is_enabled === true);
@@ -379,17 +390,334 @@ export const useInstallationStore = defineStore('installation', () => {
     await fetchInstallations();
   }
 
+  // ============================================
+  // Background Image Management
+  // ============================================
+
+  async function fetchBackgroundImage() {
+    backgroundImageLoading.value = true;
+    try {
+      // Get the installations site section
+      const { data: section, error: sectionError } = await supabase
+        .from('site_section')
+        .select('id')
+        .eq('key', 'installations')
+        .single();
+
+      if (sectionError) {
+        // Section might not exist yet, that's okay
+        backgroundImage.value = null;
+        return;
+      }
+
+      if (!section) {
+        backgroundImage.value = null;
+        return;
+      }
+
+      // Get the background image (should be only 1)
+      const { data: images, error: imagesError } = await supabase
+        .from('site_section_images')
+        .select(`
+          *,
+          media_asset:media_assets!site_section_images_media_id_fkey(*)
+        `)
+        .eq('section_id', section.id)
+        .order('sort_order', { ascending: true })
+        .limit(1);
+
+      if (imagesError) throw imagesError;
+
+      if (images && images.length > 0) {
+        backgroundImage.value = {
+          ...images[0],
+          media_asset: images[0].media_asset as MediaAsset,
+        } as SiteSectionImage;
+      } else {
+        backgroundImage.value = null;
+      }
+    } catch (err) {
+      console.error('Error fetching background image:', err);
+      backgroundImage.value = null;
+    } finally {
+      backgroundImageLoading.value = false;
+    }
+  }
+
+  async function uploadBackgroundImage(imageFile: File) {
+    backgroundImageLoading.value = true;
+    try {
+      // Get or create the installations site section
+      let sectionId: number;
+
+      const { data: existingSection, error: fetchError } = await supabase
+        .from('site_section')
+        .select('id')
+        .eq('key', 'installations')
+        .single();
+
+      if (fetchError || !existingSection) {
+        // Create the section if it doesn't exist
+        const { data: newSection, error: createError } = await supabase
+          .from('site_section')
+          .insert({
+            key: 'installations',
+            sort_order: 0,
+            is_enabled: true,
+          })
+          .select()
+          .single();
+
+        if (createError || !newSection) {
+          throw new Error('Failed to create installations section');
+        }
+        sectionId = newSection.id;
+      } else {
+        sectionId = existingSection.id;
+      }
+
+      // Delete existing background image if it exists (without loading state management)
+      if (backgroundImage.value) {
+        const imageId = backgroundImage.value.id;
+        const mediaAsset = backgroundImage.value.media_asset;
+
+        // 1. Delete from site_section_images
+        const { error: linkError } = await supabase
+          .from('site_section_images')
+          .delete()
+          .eq('id', imageId);
+
+        if (linkError) throw linkError;
+
+        // 2. Check if media_asset is used elsewhere before deleting
+        if (mediaAsset?.id) {
+          let canDeleteMediaAsset = true;
+
+          // Check if used in timeline_item_images
+          try {
+            const { data: timelineImages, error: timelineError } = await supabase
+              .from('timeline_item_images')
+              .select('id')
+              .eq('media_id', mediaAsset.id)
+              .limit(1);
+
+            if (!timelineError && timelineImages && timelineImages.length > 0) {
+              canDeleteMediaAsset = false;
+            }
+          } catch (err) {
+            // Table might not exist, continue
+            console.warn('Could not check timeline_item_images:', err);
+          }
+
+          // Check if used in other site_section_images
+          if (canDeleteMediaAsset) {
+            try {
+              const { data: otherSectionImages, error: sectionError } = await supabase
+                .from('site_section_images')
+                .select('id')
+                .eq('media_id', mediaAsset.id)
+                .limit(1);
+
+              if (!sectionError && otherSectionImages && otherSectionImages.length > 0) {
+                canDeleteMediaAsset = false;
+              }
+            } catch (err) {
+              console.warn('Could not check other site_section_images:', err);
+            }
+          }
+
+          // 3. Delete file from storage
+          if (mediaAsset?.bucket && mediaAsset?.path) {
+            const { error: storageError } = await supabase.storage
+              .from(mediaAsset.bucket)
+              .remove([mediaAsset.path]);
+
+            if (storageError) {
+              console.warn('Error deleting file from storage:', storageError);
+            }
+          }
+
+          // 4. Delete from media_assets only if not used elsewhere
+          if (canDeleteMediaAsset) {
+            const { error: mediaError } = await supabase
+              .from('media_assets')
+              .delete()
+              .eq('id', mediaAsset.id);
+
+            if (mediaError) {
+              // If deletion fails due to foreign key, just log it - the file is already deleted from storage
+              console.warn('Could not delete media_asset (may be referenced elsewhere):', mediaError);
+            }
+          } else {
+            console.log('Media asset is used elsewhere, keeping media_assets record');
+          }
+        }
+
+        backgroundImage.value = null;
+      }
+
+      // Upload the new image
+      const fileExt = imageFile.name.split('.').pop() || 'jpg';
+      const fileName = `installations_bg_${Date.now()}.${fileExt}`;
+      const filePath = `installations/${fileName}`;
+
+      // 1. Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('site-images')
+        .upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Create media asset record
+      const { data: mediaAsset, error: mediaError } = await supabase
+        .from('media_assets')
+        .insert({
+          bucket: 'site-images',
+          path: filePath,
+          alt: 'Installations background image',
+        })
+        .select()
+        .single();
+
+      if (mediaError) throw mediaError;
+      if (!mediaAsset) throw new Error('Failed to create media asset');
+
+      // 3. Link to site section
+      const { data: sectionImage, error: linkError } = await supabase
+        .from('site_section_images')
+        .insert({
+          section_id: sectionId,
+          media_id: mediaAsset.id,
+          sort_order: 0,
+        })
+        .select(`
+          *,
+          media_asset:media_assets!site_section_images_media_id_fkey(*)
+        `)
+        .single();
+
+      if (linkError) throw linkError;
+      if (!sectionImage) throw new Error('Failed to create section image link');
+
+      // Refresh background image from database to ensure we have the latest data
+      await fetchBackgroundImage();
+
+      return backgroundImage.value;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to upload background image';
+      console.error('Error uploading background image:', err);
+      throw err;
+    } finally {
+      backgroundImageLoading.value = false;
+    }
+  }
+
+  async function deleteBackgroundImage() {
+    if (!backgroundImage.value) return;
+
+    backgroundImageLoading.value = true;
+    try {
+      const imageId = backgroundImage.value.id;
+      const mediaAsset = backgroundImage.value.media_asset;
+
+      // 1. Delete from site_section_images
+      const { error: linkError } = await supabase
+        .from('site_section_images')
+        .delete()
+        .eq('id', imageId);
+
+      if (linkError) throw linkError;
+
+      // 2. Check if media_asset is used elsewhere before deleting
+      if (mediaAsset?.id) {
+        let canDeleteMediaAsset = true;
+
+        // Check if used in timeline_item_images
+        try {
+          const { data: timelineImages, error: timelineError } = await supabase
+            .from('timeline_item_images')
+            .select('id')
+            .eq('media_id', mediaAsset.id)
+            .limit(1);
+
+          if (!timelineError && timelineImages && timelineImages.length > 0) {
+            canDeleteMediaAsset = false;
+          }
+        } catch (err) {
+          // Table might not exist, continue
+          console.warn('Could not check timeline_item_images:', err);
+        }
+
+        // Check if used in other site_section_images
+        if (canDeleteMediaAsset) {
+          try {
+            const { data: otherSectionImages, error: sectionError } = await supabase
+              .from('site_section_images')
+              .select('id')
+              .eq('media_id', mediaAsset.id)
+              .limit(1);
+
+            if (!sectionError && otherSectionImages && otherSectionImages.length > 0) {
+              canDeleteMediaAsset = false;
+            }
+          } catch (err) {
+            console.warn('Could not check other site_section_images:', err);
+          }
+        }
+
+        // 3. Delete file from storage
+        if (mediaAsset?.bucket && mediaAsset?.path) {
+          const { error: storageError } = await supabase.storage
+            .from(mediaAsset.bucket)
+            .remove([mediaAsset.path]);
+
+          if (storageError) {
+            console.warn('Error deleting file from storage:', storageError);
+          }
+        }
+
+        // 4. Delete from media_assets only if not used elsewhere
+        if (canDeleteMediaAsset) {
+          const { error: mediaError } = await supabase
+            .from('media_assets')
+            .delete()
+            .eq('id', mediaAsset.id);
+
+          if (mediaError) {
+            // If deletion fails due to foreign key, just log it - the file is already deleted from storage
+            console.warn('Could not delete media_asset (may be referenced elsewhere):', mediaError);
+          }
+        } else {
+          console.log('Media asset is used elsewhere, keeping media_assets record');
+        }
+      }
+
+      backgroundImage.value = null;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to delete background image';
+      console.error('Error deleting background image:', err);
+      throw err;
+    } finally {
+      backgroundImageLoading.value = false;
+    }
+  }
+
   return {
     installations,
     loading,
     error,
     activeInstallations,
+    backgroundImage,
+    backgroundImageLoading,
     fetchInstallations,
     createInstallation,
     updateInstallation,
     deleteInstallation,
     uploadInstallationImages,
     deleteInstallationImage,
+    fetchBackgroundImage,
+    uploadBackgroundImage,
+    deleteBackgroundImage,
   };
 });
 

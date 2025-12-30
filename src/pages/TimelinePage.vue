@@ -28,9 +28,10 @@
     <div v-else class="timeline-events-list">
       <div v-for="event in timelineStore.events" :key="event.id" class="timeline-event-card">
         <div class="event-header">
-          <div class="event-title-section">
+            <div class="event-title-section">
             <div class="event-order-badge">{{ event.sort_order }}</div>
             <div class="event-date-badge">Year: {{ event.year }}</div>
+            <div v-if="getEventLabel(event)" class="event-label-badge">{{ getEventLabel(event) }}</div>
             <div class="event-status" :class="event.is_enabled ? 'active' : 'inactive'">
               <q-icon :name="event.is_enabled ? 'check_circle' : 'cancel'" />
               <span>{{ event.is_enabled ? 'Active' : 'Inactive' }}</span>
@@ -53,6 +54,7 @@
                   <span class="locale-badge">{{ t.locale }}</span>
                 </div>
                 <div class="translation-fields">
+                  <div v-if="t.label"><strong>Label:</strong> {{ t.label }}</div>
                   <div><strong>Title:</strong> {{ t.title }}</div>
                   <div v-if="t.description"><strong>Description:</strong> {{ t.description }}</div>
                 </div>
@@ -99,7 +101,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="timeline-form-card" style="min-width: 820px; max-width: 92vw">
+      <q-card class="timeline-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Timeline Event</div>
           <q-space />
@@ -143,6 +145,13 @@
                 </div>
 
                 <div class="translation-fields">
+                  <q-input
+                    v-model="t.label"
+                    label="Label"
+                    outlined
+                    hint="Optional label for this locale"
+                    class="q-mb-md"
+                  />
                   <q-input
                     v-model="t.title"
                     label="Title"
@@ -272,9 +281,9 @@ const formData = ref<TimelineEventFormData>({
   is_enabled: true,
   year: new Date().getFullYear(),
   translations: [
-    { locale: 'en', title: '', description: null },
-    { locale: 'ar', title: '', description: null },
-    { locale: 'ckb', title: '', description: null },
+    { locale: 'en', label: null, title: '', description: null },
+    { locale: 'ar', label: null, title: '', description: null },
+    { locale: 'ckb', label: null, title: '', description: null },
   ],
   image_files: [],
 });
@@ -289,9 +298,9 @@ function resetForm() {
     is_enabled: true,
     year: new Date().getFullYear(),
     translations: [
-      { locale: 'en', title: '', description: null },
-      { locale: 'ar', title: '', description: null },
-      { locale: 'ckb', title: '', description: null },
+      { locale: 'en', label: null, title: '', description: null },
+      { locale: 'ar', label: null, title: '', description: null },
+      { locale: 'ckb', label: null, title: '', description: null },
     ],
     image_files: [],
     existing_images: [],
@@ -312,7 +321,7 @@ function openEditDialog(event: TimelineEventFull) {
   const map = new Map(
     event.translations.map((t) => [
       t.locale,
-      { locale: t.locale, title: t.title || '', description: t.description || null },
+      { locale: t.locale, label: t.label || null, title: t.title || '', description: t.description || null },
     ])
   );
 
@@ -321,6 +330,7 @@ function openEditDialog(event: TimelineEventFull) {
     return (
       map.get(locale) || {
         locale,
+        label: null,
         title: '',
         description: null,
       }
@@ -430,6 +440,16 @@ function getImagePreview(file: File): string {
 
 function getImageUrl(bucket: string, path: string): string {
   return makePublicUrl(bucket, path);
+}
+
+// Get label from translations (prefer current locale or first available)
+function getEventLabel(event: TimelineEventFull): string | null {
+  // Try to get label from 'en' locale first, then any available
+  const enTranslation = event.translations.find((t) => t.locale === 'en');
+  if (enTranslation?.label) return enTranslation.label;
+  
+  const firstWithLabel = event.translations.find((t) => t.label);
+  return firstWithLabel?.label || null;
 }
 </script>
 

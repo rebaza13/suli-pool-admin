@@ -68,7 +68,7 @@
 
     <!-- Create/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card class="why-form-card" style="min-width: 820px; max-width: 92vw">
+      <q-card class="why-form-card responsive-dialog-card">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">{{ isEditing ? 'Edit' : 'Create' }} Item</div>
           <q-space />
