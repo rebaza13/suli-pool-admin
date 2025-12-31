@@ -136,7 +136,7 @@ export const useHeroStore = defineStore('hero', () => {
       const { data: slide, error: slideError } = await supabase
         .from('hero_slides')
         .insert({
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
         })
         .select()
@@ -202,9 +202,7 @@ export const useHeroStore = defineStore('hero', () => {
         updateData.is_enabled = formData.is_enabled;
       }
       
-      if (formData.sort_order !== undefined) {
-        updateData.sort_order = formData.sort_order;
-      }
+      // sort_order is GENERATED ALWAYS - cannot be updated
 
       if (Object.keys(updateData).length > 0) {
         const { error: slideError } = await supabase

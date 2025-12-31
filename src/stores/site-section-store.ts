@@ -142,7 +142,7 @@ export const useSiteSectionStore = defineStore('siteSection', () => {
         .from('site_section')
         .insert({
           key: formData.key,
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
         })
         .select()
@@ -212,9 +212,7 @@ export const useSiteSectionStore = defineStore('siteSection', () => {
       if (formData.is_enabled !== undefined) {
         updateData.is_enabled = formData.is_enabled;
       }
-      if (formData.sort_order !== undefined) {
-        updateData.sort_order = formData.sort_order;
-      }
+      // sort_order is GENERATED ALWAYS - cannot be updated
 
       if (Object.keys(updateData).length > 0) {
         const { error: sectionError } = await supabase

@@ -155,7 +155,7 @@ export const useInstallationStore = defineStore('installation', () => {
       const { data: installation, error: insertError } = await supabase
         .from(schema.baseTable)
         .insert({
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
           location: formData.location || null,
           completed_at: formData.completed_at,
@@ -211,7 +211,7 @@ export const useInstallationStore = defineStore('installation', () => {
       const updateData: Partial<Installation> = {};
 
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
-      if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
+      // sort_order is GENERATED ALWAYS - cannot be updated
       if (formData.location !== undefined) updateData.location = formData.location;
       if (formData.completed_at !== undefined) updateData.completed_at = formData.completed_at;
 

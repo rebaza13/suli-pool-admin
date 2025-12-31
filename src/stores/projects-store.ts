@@ -130,7 +130,7 @@ export const useProjectsStore = defineStore('projects', () => {
         .from('projects')
         .insert({
           slug: formData.slug,
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
           duration_days: formData.duration_days ?? null,
         })
@@ -180,7 +180,7 @@ export const useProjectsStore = defineStore('projects', () => {
       const updateData: Partial<Project> = {};
       if (formData.slug !== undefined) updateData.slug = formData.slug;
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
-      if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
+      // sort_order is GENERATED ALWAYS - cannot be updated
       if (formData.duration_days !== undefined) updateData.duration_days = formData.duration_days;
 
       if (Object.keys(updateData).length > 0) {

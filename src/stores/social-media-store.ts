@@ -85,7 +85,7 @@ export const useSocialMediaStore = defineStore('social-media', () => {
           url: formData.url,
           icon: formData.icon || PLATFORM_ICONS[formData.platform.toLowerCase()] || null,
           is_enabled: formData.is_enabled,
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
         });
 
       if (insertError) throw insertError;
@@ -109,7 +109,7 @@ export const useSocialMediaStore = defineStore('social-media', () => {
       if (formData.url !== undefined) updateData.url = formData.url;
       if (formData.icon !== undefined) updateData.icon = formData.icon;
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
-      if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
+      // sort_order is GENERATED ALWAYS - cannot be updated
 
       if (Object.keys(updateData).length > 0) {
         const { error: updateError } = await supabase

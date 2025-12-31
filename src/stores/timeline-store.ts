@@ -164,7 +164,7 @@ export const useTimelineStore = defineStore('timeline', () => {
       const { data: event, error: eventError } = await supabase
         .from(schema.baseTable)
         .insert({
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
           year: formData.year,
         })
@@ -217,7 +217,7 @@ export const useTimelineStore = defineStore('timeline', () => {
       const updateData: Partial<TimelineEvent> = {};
 
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
-      if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
+      // sort_order is GENERATED ALWAYS - cannot be updated
       if (formData.year !== undefined) updateData.year = formData.year;
 
       if (Object.keys(updateData).length > 0) {

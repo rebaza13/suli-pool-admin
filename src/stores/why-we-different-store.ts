@@ -82,7 +82,7 @@ export const useWhyWeDifferentStore = defineStore('why-we-different', () => {
       const { data: created, error: insertError } = await supabase
         .from('why_we_different')
         .insert({
-          sort_order: formData.sort_order,
+          // sort_order is GENERATED ALWAYS - don't include in insert
           icon: formData.icon || null,
           is_enabled: formData.is_enabled,
         })
@@ -123,7 +123,7 @@ export const useWhyWeDifferentStore = defineStore('why-we-different', () => {
 
     try {
       const updateData: Partial<WhyWeDifferent> = {};
-      if (formData.sort_order !== undefined) updateData.sort_order = formData.sort_order;
+      // sort_order is GENERATED ALWAYS - cannot be updated
       if (formData.icon !== undefined) updateData.icon = formData.icon || null;
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
 
