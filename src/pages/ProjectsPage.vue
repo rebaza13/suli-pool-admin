@@ -772,18 +772,27 @@ function getImageUrl(bucket: string, path: string) {
   @media (max-width: 768px) {
     .q-card-section {
       padding: 16px;
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 140px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
   }
   
   @media (max-width: 640px) {
-    margin: 8px;
-    border-radius: 12px;
+    margin: 4px;
+    border-radius: 8px;
     
     .q-card-section {
       padding: 12px;
-      max-height: calc(100vh - 80px);
+      max-height: calc(100vh - 120px);
+    }
+  }
+  
+  // Landscape mobile
+  @media (max-width: 768px) and (orientation: landscape) {
+    .q-card-section {
+      max-height: calc(100vh - 100px);
+      padding: 12px;
     }
   }
 }
@@ -808,8 +817,30 @@ function getImageUrl(bucket: string, path: string) {
   
   .form-row {
     @media (max-width: 768px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
       gap: 12px;
+    }
+  }
+  
+  .form-section {
+    @media (max-width: 768px) {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      
+      .section-title {
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      
+      .section-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
     }
   }
 }

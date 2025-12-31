@@ -604,7 +604,7 @@ function handleBackgroundFileSelect(event: Event) {
   if (target.files && target.files.length > 0) {
     const file = target.files[0];
     if (file && file.type.startsWith('image/')) {
-      uploadBackgroundImage(file);
+      void uploadBackgroundImage(file);
     } else {
       $q.notify({
         type: 'negative',
@@ -623,7 +623,7 @@ function handleBackgroundDrop(event: DragEvent) {
   if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
     const file = event.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
-      uploadBackgroundImage(file);
+      void uploadBackgroundImage(file);
     } else {
       $q.notify({
         type: 'negative',

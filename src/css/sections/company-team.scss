@@ -298,8 +298,9 @@
   .team-form-card {
     .q-card-section {
       padding: $space-16;
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 140px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
   }
   
@@ -308,15 +309,20 @@
     .form-section {
       margin-bottom: $space-24;
       padding-bottom: $space-16;
+      
+      .section-title {
+        font-size: $font-size-lg;
+        margin-bottom: $space-16;
+      }
     }
     
     .form-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
       gap: $space-12;
     }
     
     .grid-2 {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
     }
   }
 }
@@ -327,15 +333,16 @@
   }
   
   .team-form-card {
-    margin: $space-8;
-    border-radius: $radius-12;
+    margin: $space-4;
+    border-radius: $radius-8;
     
     .q-card-section {
       padding: $space-12;
-      max-height: calc(100vh - 80px);
+      max-height: calc(100vh - 120px);
     }
   }
   
+  .about-form,
   .team-form {
     .form-section {
       margin-bottom: $space-20;
@@ -345,6 +352,24 @@
         font-size: $font-size-md;
         margin-bottom: $space-12;
       }
+    }
+    
+    .form-row {
+      gap: $space-8;
+    }
+    
+    .grid-2 {
+      gap: $space-8;
+    }
+  }
+}
+
+// Landscape mobile
+@media (max-width: $bp-md) and (orientation: landscape) {
+  .team-form-card {
+    .q-card-section {
+      max-height: calc(100vh - 100px);
+      padding: $space-12;
     }
   }
 }

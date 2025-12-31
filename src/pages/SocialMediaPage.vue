@@ -423,29 +423,44 @@ function confirmDelete(link: SocialMedia) {
 
 .dialog-actions {
   padding: $space-16;
+  padding-bottom: calc(#{$space-16} + 10px);
   border-top: 1px solid $color-border;
+  
+  @media (max-width: $bp-sm) {
+    padding: $space-12;
+    padding-bottom: calc(#{$space-12} + 10px);
+  }
 }
 
 .dialog-card {
   @media (max-width: 768px) {
     .q-card-section {
       padding: 16px;
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 140px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
   }
   
   @media (max-width: 640px) {
-    margin: 8px;
-    border-radius: 12px;
+    margin: 4px;
+    border-radius: 8px;
     
     .q-card-section {
       padding: 12px;
-      max-height: calc(100vh - 80px);
+      max-height: calc(100vh - 120px);
     }
     
     .dialog-title {
       font-size: 18px;
+    }
+  }
+  
+  // Landscape mobile
+  @media (max-width: 768px) and (orientation: landscape) {
+    .q-card-section {
+      max-height: calc(100vh - 100px);
+      padding: 12px;
     }
   }
 }

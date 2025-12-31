@@ -241,8 +241,9 @@
   .stats-form-card {
     .q-card-section {
       padding: $space-16;
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 140px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
   }
   
@@ -253,12 +254,22 @@
     }
     
     .form-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
       gap: $space-12;
     }
     
     .stats-icon-field {
       grid-column: 1 / -1;
+    }
+    
+    .form-section {
+      margin-bottom: $space-24;
+      padding-bottom: $space-16;
+      
+      .section-title {
+        font-size: $font-size-lg;
+        margin-bottom: $space-16;
+      }
     }
   }
 }
@@ -279,12 +290,12 @@
   }
   
   .stats-form-card {
-    margin: $space-8;
-    border-radius: $radius-12;
+    margin: $space-4;
+    border-radius: $radius-8;
     
     .q-card-section {
       padding: $space-12;
-      max-height: calc(100vh - 80px);
+      max-height: calc(100vh - 120px);
     }
   }
   
@@ -302,6 +313,16 @@
     .form-row {
       gap: $space-8;
       margin-bottom: $space-12;
+    }
+  }
+}
+
+// Landscape mobile
+@media (max-width: $bp-md) and (orientation: landscape) {
+  .stats-form-card {
+    .q-card-section {
+      max-height: calc(100vh - 100px);
+      padding: $space-12;
     }
   }
 }

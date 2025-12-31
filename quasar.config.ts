@@ -44,6 +44,11 @@ export default defineConfig((/* ctx */) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
+      
+      // Meta tags configuration
+      meta: {
+        robots: 'noindex,nofollow',
+      },
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,

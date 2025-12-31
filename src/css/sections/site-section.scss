@@ -501,10 +501,38 @@
     }
   }
   
+  .site-section-form-card {
+    .q-card-section {
+      padding: $space-16;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
   .site-section-form {
+    .form-section {
+      margin-bottom: $space-24;
+      padding-bottom: $space-16;
+      
+      .section-title {
+        font-size: $font-size-lg;
+        margin-bottom: $space-16;
+      }
+    }
+    
     .form-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
       gap: $space-12;
+    }
+    
+    .grid-2 {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .translation-item {
+      padding: $space-12;
+      margin-bottom: $space-12;
     }
   }
   
@@ -513,6 +541,48 @@
       flex-direction: column;
       align-items: flex-start;
       gap: $space-12;
+    }
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .site-section-form-card {
+    margin: $space-4;
+    border-radius: $radius-8;
+    
+    .q-card-section {
+      padding: $space-12;
+      max-height: calc(100vh - 120px);
+    }
+  }
+  
+  .site-section-form {
+    .form-section {
+      margin-bottom: $space-20;
+      padding-bottom: $space-12;
+      
+      .section-title {
+        font-size: $font-size-md;
+        margin-bottom: $space-12;
+      }
+    }
+    
+    .form-row {
+      gap: $space-8;
+    }
+    
+    .grid-2 {
+      gap: $space-8;
+    }
+  }
+}
+
+// Landscape mobile
+@media (max-width: $bp-md) and (orientation: landscape) {
+  .site-section-form-card {
+    .q-card-section {
+      max-height: calc(100vh - 100px);
+      padding: $space-12;
     }
   }
 }

@@ -66,12 +66,45 @@ body {
 
 // Make all dialogs responsive
 .q-dialog {
+  // Ensure dialog fits on mobile screens (both portrait and landscape)
+  @media (max-width: $bp-md) {
+    padding: $space-8;
+  }
+  
+  @media (max-width: $bp-sm) {
+    padding: $space-4;
+  }
+  
+  // Handle landscape orientation on mobile
+  @media (max-width: $bp-md) and (orientation: landscape) {
+    padding: $space-4;
+    
+    .q-card {
+      max-height: 95vh;
+    }
+  }
+  
   .q-card {
     width: 100%;
     max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    
+    @media (max-width: $bp-md) {
+      max-width: calc(100vw - 16px);
+      max-height: calc(100vh - 16px);
+      margin: 0;
+    }
+    
+    @media (max-width: $bp-sm) {
+      max-width: calc(100vw - 8px);
+      max-height: calc(100vh - 8px);
+    }
     
     @media (min-width: $bp-md) {
       max-width: 800px;
+      max-height: 90vh;
     }
     
     @media (min-width: $bp-lg) {
@@ -79,14 +112,104 @@ body {
     }
   }
   
+  // Ensure dialog header is always visible
+  .q-card-section:first-child {
+    flex-shrink: 0;
+    padding: $space-16 $space-20;
+    
+    @media (max-width: $bp-md) {
+      padding: $space-12 $space-16;
+    }
+    
+    @media (max-width: $bp-sm) {
+      padding: $space-8 $space-12;
+    }
+  }
+  
   // Ensure dialog content is scrollable on small screens
-  .q-card-section {
-    max-height: calc(100vh - 120px);
+  .q-card-section:not(:first-child):not(:last-child) {
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 200px);
     
     @media (max-width: $bp-md) {
       padding: $space-16;
+      max-height: calc(100vh - 140px);
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    @media (max-width: $bp-sm) {
+      padding: $space-12;
+      max-height: calc(100vh - 120px);
+    }
+    
+    // Landscape mobile
+    @media (max-width: $bp-md) and (orientation: landscape) {
       max-height: calc(100vh - 100px);
+      padding: $space-12;
+    }
+  }
+  
+  // Ensure action buttons are always visible
+  .q-card-actions,
+  .q-card-section:last-child {
+    flex-shrink: 0;
+    padding: $space-12 $space-20;
+    padding-bottom: calc(#{$space-12} + 10px);
+    
+    @media (max-width: $bp-md) {
+      padding: $space-12 $space-16;
+      padding-bottom: calc(#{$space-12} + 10px);
+    }
+    
+    @media (max-width: $bp-sm) {
+      padding: $space-8 $space-12;
+      padding-bottom: calc(#{$space-8} + 10px);
+    }
+  }
+  
+  // Ensure buttons in form actions are visible
+  .q-mt-lg.row.justify-end,
+  .q-mt-lg.row.justify-end.q-gutter-sm {
+    padding-bottom: 10px !important;
+    margin-bottom: 0;
+    
+    @media (max-width: $bp-sm) {
+      padding-bottom: 12px !important;
+    }
+  }
+  
+  // Ensure card actions have bottom padding
+  .q-card-actions {
+    padding-bottom: calc(1rem + 10px) !important;
+    
+    @media (max-width: $bp-sm) {
+      padding-bottom: calc(0.5rem + 10px) !important;
+    }
+  }
+  
+  // Ensure last card section with buttons has bottom padding
+  .q-card-section:last-child {
+    // Add extra bottom padding if it contains action buttons
+    .q-mt-lg.row.justify-end,
+    .q-card-actions {
+      margin-bottom: 0;
+    }
+  }
+  
+  // Additional padding for dialog button containers
+  .responsive-dialog-card {
+    .q-card-section:last-child {
+      padding-bottom: calc(1rem + 10px) !important;
+      
+      @media (max-width: $bp-md) {
+        padding-bottom: calc(1rem + 10px) !important;
+      }
+      
+      @media (max-width: $bp-sm) {
+        padding-bottom: calc(0.5rem + 10px) !important;
+      }
     }
   }
 }
@@ -95,19 +218,55 @@ body {
 .responsive-dialog-card {
   width: 100%;
   max-width: 90vw;
+  max-height: 90vh;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  
+  @media (max-width: $bp-md) {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    margin: $space-8;
+    border-radius: $radius-12;
+  }
+  
+  @media (max-width: $bp-sm) {
+    max-width: calc(100vw - 8px);
+    max-height: calc(100vh - 8px);
+    margin: $space-4;
+    border-radius: $radius-8;
+  }
+  
+  // Landscape mobile
+  @media (max-width: $bp-md) and (orientation: landscape) {
+    max-height: 95vh;
+    margin: $space-4;
+  }
   
   @media (min-width: $bp-md) {
     max-width: 800px;
+    max-height: 90vh;
   }
   
   @media (min-width: $bp-lg) {
     max-width: 900px;
   }
   
-  @media (max-width: $bp-md) {
-    margin: $space-8;
-    border-radius: $radius-12;
+  // Ensure card sections are properly structured
+  .q-card-section {
+    &:first-child {
+      flex-shrink: 0;
+    }
+    
+    &:not(:first-child):not(:last-child) {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    &:last-child {
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -118,8 +277,18 @@ body {
   gap: $space-16;
   
   @media (max-width: $bp-md) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: $space-12;
+  }
+  
+  @media (max-width: $bp-sm) {
+    gap: $space-8;
+  }
+  
+  // Landscape mobile - ensure single column
+  @media (max-width: $bp-md) and (orientation: landscape) {
+    grid-template-columns: 1fr !important;
+    gap: $space-8;
   }
 }
 
@@ -130,8 +299,18 @@ body {
   gap: $space-16;
   
   @media (max-width: $bp-md) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: $space-12;
+  }
+  
+  @media (max-width: $bp-sm) {
+    gap: $space-8;
+  }
+  
+  // Landscape mobile - ensure single column
+  @media (max-width: $bp-md) and (orientation: landscape) {
+    grid-template-columns: 1fr !important;
+    gap: $space-8;
   }
 }
 
