@@ -114,6 +114,11 @@ export const useAboutStore = defineStore('about', () => {
     error.value = null;
 
     try {
+      // Check if a section already exists - prevent multiple records
+      if (sections.value.length > 0) {
+        throw new Error('About section already exists. Only one section is allowed. Please update the existing section instead.');
+      }
+
       const { data: section, error: insertError } = await supabase
         .from('about_section')
         .insert({

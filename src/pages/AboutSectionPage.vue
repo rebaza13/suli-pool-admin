@@ -2,7 +2,6 @@
   <q-page class="about-page">
     <div class="about-header">
       <h1 class="about-title">About Section</h1>
-      <q-btn color="secondary" icon="add" label="Add About Block" @click="openCreateDialog" />
     </div>
 
     <!-- Loading -->
@@ -19,9 +18,8 @@
     <!-- Empty -->
     <div v-else-if="aboutStore.sections.length === 0" class="about-empty">
       <q-icon name="info" class="empty-icon" />
-      <h2 class="empty-title">No About Blocks Yet</h2>
-      <p class="empty-text">Create your first about block to get started</p>
-      <q-btn color="secondary" icon="add" label="Add About Block" @click="openCreateDialog" />
+      <h2 class="empty-title">No About Section Found</h2>
+      <p class="empty-text">Please create the about section from the database first</p>
     </div>
 
     <!-- List -->
@@ -137,8 +135,7 @@
                     <q-input v-model="t.eyebrow_text" label="Eyebrow Text" outlined />
                     <q-input v-model="t.section_title" label="Section Title" outlined />
                     <q-input v-model="t.section_subtitle" label="Section Subtitle" outlined />
-                    <q-input v-model="t.cta_label" label="CTA Label" outlined />
-                    <q-input v-model="t.cta_href" label="CTA Link" outlined />
+                    <q-input v-model="t.cta_label" label="Button Label" outlined />
                   </div>
 
                   <q-input v-model="t.description" label="Description" type="textarea" outlined rows="3" class="q-mt-md" />
@@ -345,13 +342,6 @@ function resetForm() {
   imageFiles.value = [];
 }
 
-function openCreateDialog() {
-  isEditing.value = false;
-  editingId.value = null;
-  resetForm();
-  showDialog.value = true;
-}
-
 function openEditDialog(section: AboutSectionFull) {
   isEditing.value = true;
   editingId.value = section.id;
@@ -405,19 +395,22 @@ function openEditDialog(section: AboutSectionFull) {
 
 async function handleSubmit() {
   try {
-    if (isEditing.value && editingId.value) {
-      await aboutStore.updateAboutSection(editingId.value, {
-        ...formData.value,
-        image_files: imageFiles.value,
+    // Only allow updates - prevent creating new records
+    if (!isEditing.value || !editingId.value) {
+      $q.notify({
+        type: 'negative',
+        message: 'Cannot create new about section. Only one section is allowed. Please update the existing section.',
+        position: 'top',
+        timeout: 5000,
       });
-      $q.notify({ type: 'positive', message: 'About block updated', position: 'top' });
-    } else {
-      await aboutStore.createAboutSection({
-        ...formData.value,
-        image_files: imageFiles.value,
-      });
-      $q.notify({ type: 'positive', message: 'About block created', position: 'top' });
+      return;
     }
+
+    await aboutStore.updateAboutSection(editingId.value, {
+      ...formData.value,
+      image_files: imageFiles.value,
+    });
+    $q.notify({ type: 'positive', message: 'About block updated', position: 'top' });
 
     showDialog.value = false;
     resetForm();
