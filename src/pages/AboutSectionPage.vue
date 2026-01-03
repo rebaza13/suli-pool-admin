@@ -179,7 +179,7 @@
                         flat
                         icon="delete"
                         color="white"
-                        @click="confirmDeleteImage(img.id)"
+                        @click="removeExistingImage(img.id)"
                       />
                     </div>
                   </div>
@@ -200,7 +200,10 @@
 
               <div class="image-upload-area" @click="triggerFileInput" @dragover.prevent @drop.prevent="handleDrop">
                 <q-icon name="cloud_upload" class="upload-icon" />
-                <div class="upload-text">Click or drag images here to upload {{ isEditing ? '(new images)' : '' }}</div>
+                <div class="upload-text">
+                  Click or drag images here to upload {{ isEditing ? '(new images)' : '' }}
+                  <span class="text-caption text-grey-6 q-mt-xs block">Maximum 2 images total</span>
+                </div>
                 <input
                   ref="fileInput"
                   type="file"
@@ -406,6 +409,21 @@ async function handleSubmit() {
       return;
     }
 
+    // Validate total images (existing + new) don't exceed 2
+    const existingCount = formData.value.existing_images?.length || 0;
+    const newCount = imageFiles.value.length;
+    const totalImages = existingCount + newCount;
+    
+    if (totalImages > 2) {
+      $q.notify({
+        type: 'negative',
+        message: `Maximum 2 images allowed. Currently ${totalImages} images (${existingCount} existing + ${newCount} new).`,
+        position: 'top',
+        timeout: 5000,
+      });
+      return;
+    }
+
     await aboutStore.updateAboutSection(editingId.value, {
       ...formData.value,
       image_files: imageFiles.value,
@@ -479,7 +497,33 @@ function handleDrop(event: DragEvent) {
 
 function addImages(files: File[]) {
   const imgs = files.filter((f) => f.type.startsWith('image/'));
-  imageFiles.value.push(...imgs);
+  const existingCount = formData.value.existing_images?.length || 0;
+  const currentNewCount = imageFiles.value.length;
+  const totalCurrent = existingCount + currentNewCount;
+  const maxAllowed = 2;
+  const remainingSlots = maxAllowed - totalCurrent;
+  
+  if (remainingSlots <= 0) {
+    $q.notify({
+      type: 'warning',
+      message: `Maximum ${maxAllowed} images allowed. Please delete an existing image first.`,
+      position: 'top',
+      timeout: 3000,
+    });
+    return;
+  }
+  
+  const imagesToAdd = imgs.slice(0, remainingSlots);
+  imageFiles.value.push(...imagesToAdd);
+  
+  if (imgs.length > remainingSlots) {
+    $q.notify({
+      type: 'info',
+      message: `Only ${remainingSlots} image(s) added. Maximum ${maxAllowed} images allowed.`,
+      position: 'top',
+      timeout: 3000,
+    });
+  }
 }
 
 function removeImage(index: number) {
@@ -492,6 +536,14 @@ function getImagePreview(file: File): string {
 
 function getImageUrl(bucket: string, path: string): string {
   return makePublicUrl(bucket, path);
+}
+
+function removeExistingImage(imageId: string) {
+  if (formData.value.existing_images) {
+    formData.value.existing_images = formData.value.existing_images.filter((img) => img.id !== imageId);
+    // Also delete from database
+    confirmDeleteImage(imageId);
+  }
 }
 </script>
 

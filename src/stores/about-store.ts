@@ -307,26 +307,70 @@ export const useAboutStore = defineStore('about', () => {
     if (fetchError) throw fetchError;
 
     const mediaAsset = (img as { media_asset?: MediaAsset }).media_asset;
-    if (mediaAsset?.bucket && mediaAsset?.path) {
-      const { error: storageError } = await supabase.storage
-        .from(mediaAsset.bucket)
-        .remove([mediaAsset.path]);
-      if (storageError) console.warn('Error deleting file from storage:', storageError);
-    }
+    const mediaAssetId = mediaAsset?.id;
 
-    if (mediaAsset?.id) {
-      const { error: mediaDeleteError } = await supabase
-        .from('media_assets')
-        .delete()
-        .eq('id', mediaAsset.id);
-      if (mediaDeleteError) throw mediaDeleteError;
-    }
-
+    // Delete the about_section_images record first
     const { error: linkDeleteError } = await supabase
       .from('about_section_images')
       .delete()
       .eq('id', imageId);
     if (linkDeleteError) throw linkDeleteError;
+
+    // Only proceed with media_asset deletion if it exists and path starts with "about/"
+    if (mediaAssetId && mediaAsset?.path && mediaAsset.path.startsWith('about/')) {
+      // Check if this media_asset is used by other tables
+      // Check timeline_item_images
+      const { data: timelineImages, error: timelineError } = await supabase
+        .from('timeline_item_images')
+        .select('id')
+        .eq('media_id', mediaAssetId)
+        .limit(1);
+      if (timelineError) console.warn('Error checking timeline_item_images:', timelineError);
+
+      // Check hero_slide_images (if it uses media_asset_id, adjust column name if needed)
+      const { data: heroImages, error: heroError } = await supabase
+        .from('hero_slide_images')
+        .select('id')
+        .eq('media_id', mediaAssetId)
+        .limit(1);
+      if (heroError) console.warn('Error checking hero_slide_images:', heroError);
+
+      // Check other about_section_images (in case of duplicates, though shouldn't happen)
+      const { data: otherAboutImages, error: aboutError } = await supabase
+        .from('about_section_images')
+        .select('id')
+        .eq('media_asset_id', mediaAssetId)
+        .limit(1);
+      if (aboutError) console.warn('Error checking about_section_images:', aboutError);
+
+      // Only delete media_asset if it's not referenced by any other table
+      const isUsedElsewhere = 
+        (timelineImages && timelineImages.length > 0) ||
+        (heroImages && heroImages.length > 0) ||
+        (otherAboutImages && otherAboutImages.length > 0);
+
+      if (!isUsedElsewhere) {
+        // Delete from storage
+        if (mediaAsset.bucket && mediaAsset.path) {
+          const { error: storageError } = await supabase.storage
+            .from(mediaAsset.bucket)
+            .remove([mediaAsset.path]);
+          if (storageError) console.warn('Error deleting file from storage:', storageError);
+        }
+
+        // Delete media_asset record
+        const { error: mediaDeleteError } = await supabase
+          .from('media_assets')
+          .delete()
+          .eq('id', mediaAssetId);
+        if (mediaDeleteError) {
+          console.warn('Error deleting media_asset (may be referenced elsewhere):', mediaDeleteError);
+          // Don't throw - the about_section_images record is already deleted
+        }
+      } else {
+        console.warn('Media asset is still referenced by other tables, skipping deletion');
+      }
+    }
 
     await fetchAboutSections();
   }
