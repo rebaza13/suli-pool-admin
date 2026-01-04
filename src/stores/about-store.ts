@@ -1,6 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
+import { compressImages } from 'src/composables/useImageCompression';
 
 // ============================================
 // Types
@@ -265,8 +266,11 @@ export const useAboutStore = defineStore('about', () => {
   }
 
   async function uploadAboutImages(aboutSectionId: string, imageFiles: File[], existingCount: number) {
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
+    // Compress images before uploading
+    const compressedFiles = await compressImages(imageFiles);
+    
+    for (let i = 0; i < compressedFiles.length; i++) {
+      const file = compressedFiles[i];
       if (!file) continue;
 
       const fileExt = file.name.split('.').pop() || 'jpg';

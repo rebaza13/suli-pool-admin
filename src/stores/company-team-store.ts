@@ -1,6 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
+import { compressImage } from 'src/composables/useImageCompression';
 
 // ============================================
 // TypeScript Types
@@ -190,13 +191,15 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
       // Upload image if provided
       let imageUrl = formData.image_url || null;
       if (formData.image_file) {
-        const fileExt = formData.image_file.name.split('.').pop() || 'jpg';
+        // Compress image before uploading
+        const compressedFile = await compressImage(formData.image_file);
+        const fileExt = compressedFile.name.split('.').pop() || 'jpg';
         const fileName = `team-member_${Date.now()}.${fileExt}`;
         const filePath = `team-members/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('site-images')
-          .upload(filePath, formData.image_file, {
+          .upload(filePath, compressedFile, {
             cacheControl: '3600',
             upsert: false,
           });
@@ -265,14 +268,15 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
           }
         }
 
-        // Upload new image
-        const fileExt = formData.image_file.name.split('.').pop() || 'jpg';
+        // Compress and upload new image
+        const compressedFile = await compressImage(formData.image_file);
+        const fileExt = compressedFile.name.split('.').pop() || 'jpg';
         const fileName = `team-member_${id}_${Date.now()}.${fileExt}`;
         const filePath = `team-members/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('site-images')
-          .upload(filePath, formData.image_file, {
+          .upload(filePath, compressedFile, {
             cacheControl: '3600',
             upsert: false,
           });

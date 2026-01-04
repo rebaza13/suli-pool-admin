@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { resolveInstallationImagesSchema, resolveInstallationSchema } from 'src/stores/table-resolver';
+import { compressImage, compressImages } from 'src/composables/useImageCompression';
 
 // ============================================
 // TypeScript Types
@@ -315,8 +316,11 @@ export const useInstallationStore = defineStore('installation', () => {
   async function uploadInstallationImages(installationId: number, imageFiles: File[], existingCount: number) {
     const imagesSchema = await resolveInstallationImagesSchema();
 
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
+    // Compress images before uploading
+    const compressedFiles = await compressImages(imageFiles);
+
+    for (let i = 0; i < compressedFiles.length; i++) {
+      const file = compressedFiles[i];
       if (!file) continue;
 
       const fileExt = file.name.split('.').pop() || 'jpg';
@@ -447,6 +451,9 @@ export const useInstallationStore = defineStore('installation', () => {
   async function uploadBackgroundImage(imageFile: File) {
     backgroundImageLoading.value = true;
     try {
+      // Compress image before uploading
+      const compressedFile = await compressImage(imageFile);
+      
       // Get or create the installations site section
       let sectionId: number;
 
@@ -557,14 +564,14 @@ export const useInstallationStore = defineStore('installation', () => {
       }
 
       // Upload the new image
-      const fileExt = imageFile.name.split('.').pop() || 'jpg';
+      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
       const fileName = `installations_bg_${Date.now()}.${fileExt}`;
       const filePath = `installations/${fileName}`;
 
       // 1. Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('site-images')
-        .upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
+        .upload(filePath, compressedFile, { cacheControl: '3600', upsert: false });
 
       if (uploadError) throw uploadError;
 

@@ -49,9 +49,8 @@
             <div class="base-grid">
               <div><strong>Phone:</strong> {{ loc.phone || '—' }}</div>
               <div><strong>Email:</strong> {{ loc.email || '—' }}</div>
-              <div>
-                <strong>Map:</strong>
-                {{ loc.map_lat ?? '—' }}, {{ loc.map_lng ?? '—' }} (zoom {{ loc.map_zoom ?? '—' }})
+              <div v-if="loc.map_zoom">
+                <strong>Map Zoom:</strong> {{ loc.map_zoom }}
               </div>
             </div>
           </div>
@@ -99,8 +98,6 @@
               <div class="form-row">
                 <q-input v-model="formData.phone" label="Phone" outlined />
                 <q-input v-model="formData.email" label="Email" outlined />
-                <q-input v-model.number="formData.map_lat" type="number" label="Map Lat" outlined />
-                <q-input v-model.number="formData.map_lng" type="number" label="Map Lng" outlined />
                 <q-input v-model.number="formData.map_zoom" type="number" label="Map Zoom" outlined />
                 <q-toggle v-model="formData.is_enabled" label="Enabled" color="secondary" />
               </div>

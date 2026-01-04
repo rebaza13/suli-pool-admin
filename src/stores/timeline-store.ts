@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { resolveTimelineSchema, resolveTimelineImagesSchema } from 'src/stores/table-resolver';
+import { compressImages } from 'src/composables/useImageCompression';
 
 // ============================================
 // TypeScript Types
@@ -321,8 +322,11 @@ export const useTimelineStore = defineStore('timeline', () => {
   async function uploadEventImages(eventId: string, imageFiles: File[], existingCount: number) {
     const imagesSchema = await resolveTimelineImagesSchema();
 
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
+    // Compress images before uploading
+    const compressedFiles = await compressImages(imageFiles);
+
+    for (let i = 0; i < compressedFiles.length; i++) {
+      const file = compressedFiles[i];
       if (!file) continue;
 
       const fileExt = file.name.split('.').pop() || 'jpg';
