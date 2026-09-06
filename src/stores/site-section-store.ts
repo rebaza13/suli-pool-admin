@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { compressImages } from 'src/composables/useImageCompression';
+import { deleteMediaAssetIfUnused } from 'src/composables/useMediaAssetCleanup';
 
 // ============================================
 // TypeScript Types
@@ -284,31 +285,22 @@ export const useSiteSectionStore = defineStore('siteSection', () => {
     error.value = null;
 
     try {
-      // Get section images to delete files from storage
+      // Delete each image link, then its underlying media asset if unused
+      // elsewhere (avoids leaking orphaned media_assets rows/storage files).
       const section = siteSections.value.find((s) => s.id === id);
       if (section && section.images.length > 0) {
-        // Delete images from storage
-        for (const image of section.images) {
-          if (image.media_asset && image.media_asset.bucket && image.media_asset.path) {
-            const { error: storageError } = await supabase.storage
-              .from(image.media_asset.bucket)
-              .remove([image.media_asset.path]);
+        const { error: imagesError } = await supabase
+          .from('site_section_images')
+          .delete()
+          .eq('section_id', id);
+        if (imagesError) throw imagesError;
 
-            if (storageError) {
-              console.warn('Error deleting file from storage:', storageError);
-              // Don't throw - storage deletion is best effort
-            }
+        for (const image of section.images) {
+          if (image.media_asset) {
+            await deleteMediaAssetIfUnused(image.media_asset);
           }
         }
       }
-
-      // Delete site section images (cascading deletes should handle this, but we'll do it explicitly)
-      const { error: imagesError } = await supabase
-        .from('site_section_images')
-        .delete()
-        .eq('section_id', id);
-
-      if (imagesError) throw imagesError;
 
       // Delete translations
       const { error: translationsError } = await supabase
@@ -411,35 +403,18 @@ export const useSiteSectionStore = defineStore('siteSection', () => {
 
       const mediaAsset = sectionImage.media_asset as MediaAsset;
 
-      // Delete from storage using bucket and path
-      if (mediaAsset?.bucket && mediaAsset?.path) {
-        const { error: storageError } = await supabase.storage
-          .from(mediaAsset.bucket)
-          .remove([mediaAsset.path]);
-
-        if (storageError) {
-          console.warn('Error deleting file from storage:', storageError);
-          // Don't throw - storage deletion is best effort
-        }
-      }
-
-      // Delete media asset record
-      if (mediaAsset?.id) {
-        const { error: mediaError } = await supabase
-          .from('media_assets')
-          .delete()
-          .eq('id', mediaAsset.id);
-
-        if (mediaError) throw mediaError;
-      }
-
-      // Delete site section image link
+      // Delete the link row first, then the underlying media asset only if
+      // nothing else still references it.
       const { error: linkError } = await supabase
         .from('site_section_images')
         .delete()
         .eq('id', imageId);
 
       if (linkError) throw linkError;
+
+      if (mediaAsset?.id) {
+        await deleteMediaAssetIfUnused(mediaAsset);
+      }
 
       // Refresh data
       await fetchSiteSections();

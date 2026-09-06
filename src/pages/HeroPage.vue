@@ -376,7 +376,6 @@ function openEditDialog(slide: HeroSlideFull) {
     existing_images: slide.images || [],
   };
 
-  console.log('Form data set:', formData.value);
   showDialog.value = true;
 }
 
@@ -396,10 +395,7 @@ function resetForm() {
 
 async function handleSubmit() {
   try {
-    console.log('Submitting form:', { isEditing: isEditing.value, formData: formData.value });
-    
     if (isEditing.value && editingId.value) {
-      console.log('Updating hero slide:', editingId.value);
       await heroStore.updateHeroSlide(editingId.value, formData.value);
       $q.notify({
         type: 'positive',
@@ -407,7 +403,6 @@ async function handleSubmit() {
         position: 'top',
       });
     } else {
-      console.log('Creating new hero slide');
       await heroStore.createHeroSlide(formData.value);
       $q.notify({
         type: 'positive',

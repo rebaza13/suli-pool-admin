@@ -1,8 +1,16 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
-import { resolveTimelineSchema, resolveTimelineImagesSchema } from 'src/stores/table-resolver';
 import { compressImages } from 'src/composables/useImageCompression';
+
+const BASE_TABLE = 'timeline_items';
+const TRANSLATIONS_TABLE = 'timeline_item_translations';
+const TRANSLATIONS_FK = 'timeline_item_id';
+const IMAGES_TABLE = 'timeline_item_images';
+const IMAGES_FK = 'timeline_item_id';
+// The public site only ever queries timeline_items where section_key = 'history'
+// (see suli-pool-front's useProcessStore.ts) — this admin only manages that one section.
+const SECTION_KEY = 'history';
 
 // ============================================
 // TypeScript Types
@@ -21,6 +29,7 @@ export interface TimelineEvent {
   sort_order: number;
   is_enabled: boolean;
   year: number;
+  section_key: string;
   created_at: string;
 }
 
@@ -28,9 +37,8 @@ export interface TimelineImage {
   id: string;
   sort_order: number;
   media_id: number;
+  timeline_item_id: string;
   media_asset?: MediaAsset | undefined;
-  // fk column is dynamic (timeline_item_id / timeline_event_id / timeline_id)
-  [key: string]: unknown;
 }
 
 export interface TimelineEventTranslation {
@@ -76,77 +84,51 @@ export const useTimelineStore = defineStore('timeline', () => {
     error.value = null;
 
     try {
-      const schema = await resolveTimelineSchema();
-      let imagesSchema:
-        | Awaited<ReturnType<typeof resolveTimelineImagesSchema>>
-        | null = null;
-      try {
-        imagesSchema = await resolveTimelineImagesSchema();
-      } catch {
-        imagesSchema = null; // Timeline images table not present — keep working without images.
-      }
-
       const { data: baseEvents, error: eventsError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .select('*')
         .order('sort_order', { ascending: true });
 
       if (eventsError) throw eventsError;
 
       const { data: translations, error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .select('*');
 
       if (translationsError) throw translationsError;
 
-      // Fetch images (optional)
-      let images: TimelineImage[] = [];
-      if (imagesSchema) {
-        const { data: linkRows, error: imagesError } = await supabase
-          .from(imagesSchema.imagesTable)
+      // Fetch images
+      const { data: linkRows, error: imagesError } = await supabase
+        .from(IMAGES_TABLE)
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (imagesError) throw imagesError;
+
+      const link = (linkRows || []) as TimelineImage[];
+      const mediaIds = Array.from(new Set(link.map((r) => r.media_id).filter((v): v is number => typeof v === 'number')));
+
+      let mediaAssets: MediaAsset[] = [];
+      if (mediaIds.length > 0) {
+        const { data: assets, error: assetsError } = await supabase
+          .from('media_assets')
           .select('*')
-          .order(imagesSchema.sortColumn, { ascending: true });
-        if (imagesError) throw imagesError;
-
-        const link = (linkRows || []) as TimelineImage[];
-        const mediaIds = Array.from(
-          new Set(
-            link
-              .map((r) => r[imagesSchema.mediaIdColumn] as number | null | undefined)
-              .filter((v): v is number => typeof v === 'number')
-          )
-        );
-
-        let mediaAssets: MediaAsset[] = [];
-        if (mediaIds.length > 0) {
-          const { data: assets, error: assetsError } = await supabase
-            .from('media_assets')
-            .select('*')
-            .in('id', mediaIds);
-          if (assetsError) throw assetsError;
-          mediaAssets = (assets || []) as MediaAsset[];
-        }
-
-        const assetMap = new Map<number, MediaAsset>(mediaAssets.map((a) => [a.id, a]));
-        images = link.map((r) => {
-          const mediaId = r[imagesSchema.mediaIdColumn] as number | undefined;
-          return {
-            ...r,
-            sort_order: (r[imagesSchema.sortColumn] as number) ?? 0,
-            media_id: mediaId ?? 0,
-            media_asset: mediaId ? assetMap.get(mediaId) : undefined,
-          };
-        });
+          .in('id', mediaIds);
+        if (assetsError) throw assetsError;
+        mediaAssets = (assets || []) as MediaAsset[];
       }
+
+      const assetMap = new Map<number, MediaAsset>(mediaAssets.map((a) => [a.id, a]));
+      const images: TimelineImage[] = link.map((r) => ({
+        ...r,
+        media_asset: r.media_id ? assetMap.get(r.media_id) : undefined,
+      }));
 
       events.value = (baseEvents || []).map((e) => ({
         ...e,
-        translations: (translations || []).filter((t) => (t as Record<string, unknown>)[schema.translationsFkColumn] === e.id),
-        images: imagesSchema
-          ? images
-              .filter((img) => (img as Record<string, unknown>)[imagesSchema.imagesFkColumn] === e.id)
-              .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-          : [],
+        translations: (translations || []).filter((t) => (t as Record<string, unknown>)[TRANSLATIONS_FK] === e.id),
+        images: images
+          .filter((img) => img[IMAGES_FK as keyof TimelineImage] === e.id)
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)),
       })) as TimelineEventFull[];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch timeline events';
@@ -161,13 +143,13 @@ export const useTimelineStore = defineStore('timeline', () => {
     error.value = null;
 
     try {
-      const schema = await resolveTimelineSchema();
       const { data: event, error: eventError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .insert({
           // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
           year: formData.year,
+          section_key: SECTION_KEY,
         })
         .select()
         .single();
@@ -179,7 +161,7 @@ export const useTimelineStore = defineStore('timeline', () => {
 
       if (formData.translations && formData.translations.length > 0) {
         const translationsToInsert = formData.translations.map((t) => ({
-          [schema.translationsFkColumn]: eventId,
+          [TRANSLATIONS_FK]: eventId,
           locale: t.locale,
           label: t.label || null,
           title: t.title,
@@ -187,7 +169,7 @@ export const useTimelineStore = defineStore('timeline', () => {
         }));
 
         const { error: translationsError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .insert(translationsToInsert);
 
         if (translationsError) throw translationsError;
@@ -214,7 +196,6 @@ export const useTimelineStore = defineStore('timeline', () => {
     error.value = null;
 
     try {
-      const schema = await resolveTimelineSchema();
       const updateData: Partial<TimelineEvent> = {};
 
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
@@ -223,7 +204,7 @@ export const useTimelineStore = defineStore('timeline', () => {
 
       if (Object.keys(updateData).length > 0) {
         const { error: eventError } = await supabase
-          .from(schema.baseTable)
+          .from(BASE_TABLE)
           .update(updateData)
           .eq('id', id);
 
@@ -232,15 +213,15 @@ export const useTimelineStore = defineStore('timeline', () => {
 
       if (formData.translations) {
         const { error: deleteError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .delete()
-          .eq(schema.translationsFkColumn, id);
+          .eq(TRANSLATIONS_FK, id);
 
         if (deleteError) throw deleteError;
 
         if (formData.translations.length > 0) {
           const translationsToInsert = formData.translations.map((t) => ({
-            [schema.translationsFkColumn]: id,
+            [TRANSLATIONS_FK]: id,
             locale: t.locale,
             label: t.label || null,
             title: t.title,
@@ -248,7 +229,7 @@ export const useTimelineStore = defineStore('timeline', () => {
           }));
 
           const { error: insertError } = await supabase
-            .from(schema.translationsTable)
+            .from(TRANSLATIONS_TABLE)
             .insert(translationsToInsert);
 
           if (insertError) throw insertError;
@@ -276,35 +257,29 @@ export const useTimelineStore = defineStore('timeline', () => {
     error.value = null;
 
     try {
-      const schema = await resolveTimelineSchema();
-      // Best-effort delete images first (if we have a link table)
-      try {
-        const imagesSchema = await resolveTimelineImagesSchema();
-        const { data: rows, error: rowsError } = await supabase
-          .from(imagesSchema.imagesTable)
-          .select('*')
-          .eq(imagesSchema.imagesFkColumn, id);
-        if (rowsError) throw rowsError;
+      // Delete images first
+      const { data: rows, error: rowsError } = await supabase
+        .from(IMAGES_TABLE)
+        .select('*')
+        .eq(IMAGES_FK, id);
+      if (rowsError) throw rowsError;
 
-        const links = (rows || []) as Record<string, unknown>[];
-        for (const link of links) {
-          const linkId = link.id as string | undefined;
-          if (linkId) {
-            await deleteEventImage(linkId);
-          }
+      const links = (rows || []) as Record<string, unknown>[];
+      for (const link of links) {
+        const linkId = link.id as string | undefined;
+        if (linkId) {
+          await deleteEventImage(linkId);
         }
-      } catch {
-        // ignore if image schema doesn't exist
       }
 
       const { error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .delete()
-        .eq(schema.translationsFkColumn, id);
+        .eq(TRANSLATIONS_FK, id);
       if (translationsError) throw translationsError;
 
       const { error: eventError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .delete()
         .eq('id', id);
       if (eventError) throw eventError;
@@ -320,8 +295,6 @@ export const useTimelineStore = defineStore('timeline', () => {
   }
 
   async function uploadEventImages(eventId: string, imageFiles: File[], existingCount: number) {
-    const imagesSchema = await resolveTimelineImagesSchema();
-
     // Compress images before uploading
     const compressedFiles = await compressImages(imageFiles);
 
@@ -352,30 +325,28 @@ export const useTimelineStore = defineStore('timeline', () => {
       if (mediaError) throw mediaError;
       if (!mediaAsset) throw new Error('Failed to create media asset');
 
-      // 3) Link to timeline item/event
+      // 3) Link to timeline item
       const insertRow: Record<string, unknown> = {
-        [imagesSchema.imagesFkColumn]: eventId,
-        [imagesSchema.mediaIdColumn]: (mediaAsset as { id: number }).id,
-        [imagesSchema.sortColumn]: existingCount + i,
+        [IMAGES_FK]: eventId,
+        media_id: (mediaAsset as { id: number }).id,
+        sort_order: existingCount + i,
       };
 
-      const { error: linkError } = await supabase.from(imagesSchema.imagesTable).insert(insertRow);
+      const { error: linkError } = await supabase.from(IMAGES_TABLE).insert(insertRow);
       if (linkError) throw linkError;
     }
   }
 
   async function deleteEventImage(imageLinkId: string) {
-    const imagesSchema = await resolveTimelineImagesSchema();
-
     // Fetch link row
     const { data: linkRow, error: linkFetchError } = await supabase
-      .from(imagesSchema.imagesTable)
+      .from(IMAGES_TABLE)
       .select('*')
       .eq('id', imageLinkId)
       .single();
     if (linkFetchError) throw linkFetchError;
 
-    const mediaId = (linkRow as Record<string, unknown>)[imagesSchema.mediaIdColumn] as number | undefined;
+    const mediaId = (linkRow as Record<string, unknown>)['media_id'] as number | undefined;
     let mediaAsset: MediaAsset | null = null;
     if (typeof mediaId === 'number') {
       const { data: asset, error: assetError } = await supabase
@@ -386,6 +357,11 @@ export const useTimelineStore = defineStore('timeline', () => {
       if (assetError) throw assetError;
       mediaAsset = asset as MediaAsset;
     }
+
+    // Delete the link row FIRST (matches every other store's ordering — safe
+    // even with an ON DELETE CASCADE FK, and doesn't rely on it)
+    const { error: linkDeleteError } = await supabase.from(IMAGES_TABLE).delete().eq('id', imageLinkId);
+    if (linkDeleteError) throw linkDeleteError;
 
     // Delete from storage
     if (mediaAsset?.bucket && mediaAsset?.path) {
@@ -400,10 +376,6 @@ export const useTimelineStore = defineStore('timeline', () => {
       const { error: mediaDeleteError } = await supabase.from('media_assets').delete().eq('id', mediaAsset.id);
       if (mediaDeleteError) throw mediaDeleteError;
     }
-
-    // Delete link row
-    const { error: linkDeleteError } = await supabase.from(imagesSchema.imagesTable).delete().eq('id', imageLinkId);
-    if (linkDeleteError) throw linkDeleteError;
 
     await fetchEvents();
   }

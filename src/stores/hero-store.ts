@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { compressImages } from 'src/composables/useImageCompression';
+import { deleteMediaAssetIfUnused } from 'src/composables/useMediaAssetCleanup';
 
 // ============================================
 // TypeScript Types
@@ -271,32 +272,22 @@ export const useHeroStore = defineStore('hero', () => {
     error.value = null;
 
     try {
-      // Get slide images to delete files from storage
+      // Delete each image link, then its underlying media asset if unused
+      // elsewhere (avoids leaking orphaned media_assets rows/storage files).
       const slide = heroSlides.value.find((s) => s.id === id);
       if (slide && slide.images.length > 0) {
-        // Delete images from storage
+        const { error: imagesError } = await supabase
+          .from('hero_slide_images')
+          .delete()
+          .eq('hero_slide_id', id);
+        if (imagesError) throw imagesError;
+
         for (const image of slide.images) {
-          if (image.media_asset && image.media_asset.bucket && image.media_asset.path) {
-            const { error: storageError } = await supabase.storage
-              .from(image.media_asset.bucket)
-              .remove([image.media_asset.path]);
-            
-            if (storageError) {
-              console.warn('Error deleting file from storage:', storageError);
-              // Don't throw - storage deletion is best effort
-            }
+          if (image.media_asset) {
+            await deleteMediaAssetIfUnused(image.media_asset);
           }
         }
       }
-
-      // Delete hero slide (cascading deletes should handle translations and images)
-      // But we'll do it explicitly to be sure
-      const { error: imagesError } = await supabase
-        .from('hero_slide_images')
-        .delete()
-        .eq('hero_slide_id', id);
-
-      if (imagesError) throw imagesError;
 
       const { error: translationsError } = await supabase
         .from('hero_slide_translations')
@@ -395,35 +386,18 @@ export const useHeroStore = defineStore('hero', () => {
 
       const mediaAsset = slideImage.media_asset as MediaAsset;
 
-      // Delete from storage using bucket and path
-      if (mediaAsset?.bucket && mediaAsset?.path) {
-        const { error: storageError } = await supabase.storage
-          .from(mediaAsset.bucket)
-          .remove([mediaAsset.path]);
-        
-        if (storageError) {
-          console.warn('Error deleting file from storage:', storageError);
-          // Don't throw - storage deletion is best effort
-        }
-      }
-
-      // Delete media asset record
-      if (mediaAsset?.id) {
-        const { error: mediaError } = await supabase
-          .from('media_assets')
-          .delete()
-          .eq('id', mediaAsset.id);
-
-        if (mediaError) throw mediaError;
-      }
-
-      // Delete hero slide image link
+      // Delete the link row first, then the underlying media asset only if
+      // nothing else still references it.
       const { error: linkError } = await supabase
         .from('hero_slide_images')
         .delete()
         .eq('id', imageId);
 
       if (linkError) throw linkError;
+
+      if (mediaAsset?.id) {
+        await deleteMediaAssetIfUnused(mediaAsset);
+      }
 
       // Refresh data
       await fetchHeroSlides();

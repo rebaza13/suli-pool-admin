@@ -9,7 +9,18 @@
           icon="menu"
           aria-label="Menu"
           @click="toggleLeftDrawer"
-          class="q-mr-sm"
+          class="q-mr-sm mobile-menu-btn"
+        />
+
+        <q-btn
+          v-if="$q.screen.gt.sm"
+          flat
+          dense
+          round
+          :icon="miniState ? 'chevron_right' : 'chevron_left'"
+          aria-label="Collapse sidebar"
+          class="q-mr-sm header-icon-btn"
+          @click="toggleMini"
         />
 
         <q-toolbar-title class="header-title">
@@ -22,9 +33,6 @@
         <q-space />
 
         <div class="row items-center q-gutter-sm">
-          <div v-if="authStore.userEmail" class="user-email text-body2 text-grey-7 q-mr-sm">
-            {{ authStore.userEmail }}
-          </div>
           <q-btn
             flat
             dense
@@ -33,6 +41,10 @@
             aria-label="Notifications"
             class="header-icon-btn"
           />
+          <div v-if="authStore.userEmail" class="user-chip">
+            <div class="user-avatar">{{ userInitial }}</div>
+            <span class="user-email">{{ authStore.userEmail }}</span>
+          </div>
           <q-btn
             flat
             dense
@@ -59,22 +71,6 @@
       :behavior="$q.screen.lt.md ? 'mobile' : 'desktop'"
     >
       <div class="sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-title">
-            <img src="/images/logo.PNG" alt="Logo" />
-            <span v-if="!miniState || $q.screen.lt.md">Menu</span>
-          </div>
-          <q-btn
-            v-if="$q.screen.gt.sm"
-            flat
-            dense
-            round
-            :icon="miniState ? 'chevron_right' : 'chevron_left'"
-            class="sidebar-toggle-btn"
-            @click="toggleMini"
-          />
-        </div>
-
         <div class="sidebar-content">
           <ul class="sidebar-menu">
             <li
@@ -103,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useQuasar } from 'quasar';
@@ -114,6 +110,8 @@ const $q = useQuasar();
 
 const leftDrawerOpen = ref(false);
 const miniState = ref(false);
+
+const userInitial = computed(() => (authStore.userEmail || '?').charAt(0).toUpperCase());
 
 // Disable mini mode on mobile/tablet
 watch(() => $q.screen.lt.md, (isMobile) => {
@@ -184,19 +182,43 @@ function handleLogout() {
 @import '../css/variables.scss';
 
 .header-toolbar {
-  padding: 0 $space-16;
-  min-height: 64px;
+  padding: 0 $space-24;
+  min-height: 68px;
 }
 
 .header-title {
-  font-weight: 600;
+  font-weight: 700;
   font-size: $font-size-lg;
   color: $color-primary;
+  letter-spacing: -0.01em;
 }
 
 .header-logo {
-  height: 32px;
+  height: 30px;
   width: auto;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: $space-8;
+  padding: $space-4 $space-12 $space-4 $space-4;
+  border-radius: $radius-pill;
+  background-color: $color-bg;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-secondary, $color-accent);
+  color: $color-white;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .user-email {
@@ -204,6 +226,9 @@ function handleLogout() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: $font-size-sm;
+  color: $color-text;
+  font-weight: 500;
 }
 
 .header-icon-btn {
@@ -229,6 +254,11 @@ function handleLogout() {
     display: none;
   }
 
+  .user-chip {
+    padding: $space-4;
+    background: transparent;
+  }
+
   .header-title {
     font-size: $font-size-md;
   }
@@ -244,11 +274,19 @@ function handleLogout() {
     .q-btn[aria-label="Menu"] {
       background-color: rgba($color-secondary, 0.1);
       color: $color-secondary;
-      
+
       &:hover {
         background-color: rgba($color-secondary, 0.2);
       }
     }
+  }
+}
+
+// Desktop always shows the drawer (show-if-above), so the hamburger toggle
+// has no effect there — the sidebar-collapse button takes its place instead.
+@media (min-width: 1025px) {
+  .mobile-menu-btn {
+    display: none;
   }
 }
 </style>

@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { compressImages } from 'src/composables/useImageCompression';
+import { deleteMediaAssetIfUnused } from 'src/composables/useMediaAssetCleanup';
 
 // ============================================
 // TypeScript Types
@@ -355,21 +356,9 @@ export const useProjectsStore = defineStore('projects', () => {
       .eq('id', imageId);
     if (linkDeleteError) throw linkDeleteError;
 
-    // 2) Delete file from storage
-    if (mediaAsset?.bucket && mediaAsset?.path) {
-      const { error: storageError } = await supabase.storage
-        .from(mediaAsset.bucket)
-        .remove([mediaAsset.path]);
-      if (storageError) console.warn('Error deleting file from storage:', storageError);
-    }
-
-    // 3) Delete from media_assets LAST (now safe, no FK references)
+    // 2) Delete the underlying media asset only if nothing else uses it
     if (mediaAsset?.id) {
-      const { error: mediaDeleteError } = await supabase
-        .from('media_assets')
-        .delete()
-        .eq('id', mediaAsset.id);
-      if (mediaDeleteError) throw mediaDeleteError;
+      await deleteMediaAssetIfUnused(mediaAsset);
     }
 
     await fetchProjects();

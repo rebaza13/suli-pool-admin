@@ -1,7 +1,10 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
-import { resolveLocationsSchema } from 'src/stores/table-resolver';
+
+const BASE_TABLE = 'location';
+const TRANSLATIONS_TABLE = 'location_translations';
+const TRANSLATIONS_FK = 'location_id';
 
 // ============================================
 // Types
@@ -67,22 +70,21 @@ export const useLocationsStore = defineStore('locations', () => {
     loading.value = true;
     error.value = null;
     try {
-      const schema = await resolveLocationsSchema();
       const { data: base, error: baseError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .select('*')
         .order('created_at', { ascending: false });
       if (baseError) throw baseError;
 
       const { data: translations, error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .select('*');
       if (translationsError) throw translationsError;
 
       locations.value = (base || []).map((row) => ({
         ...(row as Location),
         translations: (translations || []).filter(
-          (t) => (t as Record<string, unknown>)[schema.translationsFkColumn] === (row as Location).id
+          (t) => (t as Record<string, unknown>)[TRANSLATIONS_FK] === (row as Location).id
         ) as LocationTranslation[],
       })) as LocationFull[];
     } catch (err) {
@@ -97,9 +99,8 @@ export const useLocationsStore = defineStore('locations', () => {
     loading.value = true;
     error.value = null;
     try {
-      const schema = await resolveLocationsSchema();
       const { data: location, error: insertError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .insert({
           phone: formData.phone ?? null,
           email: formData.email ?? null,
@@ -117,7 +118,7 @@ export const useLocationsStore = defineStore('locations', () => {
 
       if (formData.translations?.length) {
         const rows = formData.translations.map((t) => ({
-          [schema.translationsFkColumn]: locationId,
+          [TRANSLATIONS_FK]: locationId,
           locale: t.locale,
           section_title: t.section_title ?? null,
           section_subtitle: t.section_subtitle ?? null,
@@ -130,7 +131,7 @@ export const useLocationsStore = defineStore('locations', () => {
           marker_title: t.marker_title ?? null,
         }));
         const { error: translationsError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .insert(rows);
         if (translationsError) throw translationsError;
       }
@@ -150,7 +151,6 @@ export const useLocationsStore = defineStore('locations', () => {
     loading.value = true;
     error.value = null;
     try {
-      const schema = await resolveLocationsSchema();
       const updateData: Partial<Location> = {};
       if (formData.phone !== undefined) updateData.phone = formData.phone;
       if (formData.email !== undefined) updateData.email = formData.email;
@@ -161,7 +161,7 @@ export const useLocationsStore = defineStore('locations', () => {
 
       if (Object.keys(updateData).length > 0) {
         const { error: updateError } = await supabase
-          .from(schema.baseTable)
+          .from(BASE_TABLE)
           .update(updateData)
           .eq('id', id);
         if (updateError) throw updateError;
@@ -169,14 +169,14 @@ export const useLocationsStore = defineStore('locations', () => {
 
       if (formData.translations) {
         const { error: deleteError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .delete()
-          .eq(schema.translationsFkColumn, id);
+          .eq(TRANSLATIONS_FK, id);
         if (deleteError) throw deleteError;
 
         if (formData.translations.length > 0) {
           const rows = formData.translations.map((t) => ({
-            [schema.translationsFkColumn]: id,
+            [TRANSLATIONS_FK]: id,
             locale: t.locale,
             section_title: t.section_title ?? null,
             section_subtitle: t.section_subtitle ?? null,
@@ -189,7 +189,7 @@ export const useLocationsStore = defineStore('locations', () => {
             marker_title: t.marker_title ?? null,
           }));
           const { error: insertError } = await supabase
-            .from(schema.translationsTable)
+            .from(TRANSLATIONS_TABLE)
             .insert(rows);
           if (insertError) throw insertError;
         }
@@ -209,15 +209,14 @@ export const useLocationsStore = defineStore('locations', () => {
     loading.value = true;
     error.value = null;
     try {
-      const schema = await resolveLocationsSchema();
       const { error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .delete()
-        .eq(schema.translationsFkColumn, id);
+        .eq(TRANSLATIONS_FK, id);
       if (translationsError) throw translationsError;
 
       const { error: deleteError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .delete()
         .eq('id', id);
       if (deleteError) throw deleteError;

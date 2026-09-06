@@ -171,7 +171,9 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
 
       await fetchAboutCompany();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to save about company';
+      // Don't set `error` here — it would blank out the already-loaded page
+      // (see CompanyTeamPage.vue's loading/error/list v-else-if chain).
+      // The caller shows this via $q.notify instead.
       console.error('Error saving about company:', err);
       throw err;
     } finally {
@@ -227,7 +229,7 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
 
       await fetchTeamMembers();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create team member';
+      // Don't set `error` here — see createOrUpdateAboutCompany's comment above.
       console.error('Error creating team member:', err);
       throw err;
     } finally {
@@ -300,7 +302,7 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
 
       await fetchTeamMembers();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to update team member';
+      // Don't set `error` here — see createOrUpdateAboutCompany's comment above.
       console.error('Error updating team member:', err);
       throw err;
     } finally {
@@ -338,7 +340,7 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
 
       await fetchTeamMembers();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to delete team member';
+      // Don't set `error` here — see createOrUpdateAboutCompany's comment above.
       console.error('Error deleting team member:', err);
       throw err;
     } finally {

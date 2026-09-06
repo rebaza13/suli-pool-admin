@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
 import { compressImages } from 'src/composables/useImageCompression';
+import { deleteMediaAssetIfUnused } from 'src/composables/useMediaAssetCleanup';
 
 // ============================================
 // Types
@@ -137,15 +138,15 @@ export const useAboutStore = defineStore('about', () => {
         const rows = formData.translations.map((t) => ({
           about_section_id: aboutSectionId,
           locale: t.locale,
-          eyebrow_text: t.eyebrow_text ?? null,
-          section_title: t.section_title ?? null,
-          section_subtitle: t.section_subtitle ?? null,
-          description: t.description ?? null,
-          card_title: t.card_title ?? null,
-          card_title_highlight: t.card_title_highlight ?? null,
-          card_description: t.card_description ?? null,
-          cta_label: t.cta_label ?? null,
-          cta_href: t.cta_href ?? null,
+          eyebrow_text: t.eyebrow_text ?? '',
+          section_title: t.section_title ?? '',
+          section_subtitle: t.section_subtitle ?? '',
+          description: t.description ?? '',
+          card_title: t.card_title ?? '',
+          card_title_highlight: t.card_title_highlight ?? '',
+          card_description: t.card_description ?? '',
+          cta_label: t.cta_label ?? '',
+          cta_href: t.cta_href ?? '',
         }));
 
         const { error: translationsError } = await supabase
@@ -161,7 +162,9 @@ export const useAboutStore = defineStore('about', () => {
       await fetchAboutSections();
       return section;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create about section';
+      // Don't set `error` here — it would blank out the already-loaded list
+      // (see AboutSectionPage.vue's loading/error/list v-else-if chain).
+      // The caller shows this via $q.notify instead.
       console.error('Error creating about section:', err);
       throw err;
     } finally {
@@ -197,15 +200,15 @@ export const useAboutStore = defineStore('about', () => {
           const rows = formData.translations.map((t) => ({
             about_section_id: id,
             locale: t.locale,
-            eyebrow_text: t.eyebrow_text ?? null,
-            section_title: t.section_title ?? null,
-            section_subtitle: t.section_subtitle ?? null,
-            description: t.description ?? null,
-            card_title: t.card_title ?? null,
-            card_title_highlight: t.card_title_highlight ?? null,
-            card_description: t.card_description ?? null,
-            cta_label: t.cta_label ?? null,
-            cta_href: t.cta_href ?? null,
+            eyebrow_text: t.eyebrow_text ?? '',
+            section_title: t.section_title ?? '',
+            section_subtitle: t.section_subtitle ?? '',
+            description: t.description ?? '',
+            card_title: t.card_title ?? '',
+            card_title_highlight: t.card_title_highlight ?? '',
+            card_description: t.card_description ?? '',
+            cta_label: t.cta_label ?? '',
+            cta_href: t.cta_href ?? '',
           }));
 
           const { error: insertError } = await supabase
@@ -222,7 +225,7 @@ export const useAboutStore = defineStore('about', () => {
 
       await fetchAboutSections();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to update about section';
+      // Don't set `error` here — see createAboutSection's comment above.
       console.error('Error updating about section:', err);
       throw err;
     } finally {
@@ -257,7 +260,7 @@ export const useAboutStore = defineStore('about', () => {
 
       await fetchAboutSections();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to delete about section';
+      // Don't set `error` here — see createAboutSection's comment above.
       console.error('Error deleting about section:', err);
       throw err;
     } finally {
@@ -311,7 +314,6 @@ export const useAboutStore = defineStore('about', () => {
     if (fetchError) throw fetchError;
 
     const mediaAsset = (img as { media_asset?: MediaAsset }).media_asset;
-    const mediaAssetId = mediaAsset?.id;
 
     // Delete the about_section_images record first
     const { error: linkDeleteError } = await supabase
@@ -320,60 +322,8 @@ export const useAboutStore = defineStore('about', () => {
       .eq('id', imageId);
     if (linkDeleteError) throw linkDeleteError;
 
-    // Only proceed with media_asset deletion if it exists and path starts with "about/"
-    if (mediaAssetId && mediaAsset?.path && mediaAsset.path.startsWith('about/')) {
-      // Check if this media_asset is used by other tables
-      // Check timeline_item_images
-      const { data: timelineImages, error: timelineError } = await supabase
-        .from('timeline_item_images')
-        .select('id')
-        .eq('media_id', mediaAssetId)
-        .limit(1);
-      if (timelineError) console.warn('Error checking timeline_item_images:', timelineError);
-
-      // Check hero_slide_images (if it uses media_asset_id, adjust column name if needed)
-      const { data: heroImages, error: heroError } = await supabase
-        .from('hero_slide_images')
-        .select('id')
-        .eq('media_id', mediaAssetId)
-        .limit(1);
-      if (heroError) console.warn('Error checking hero_slide_images:', heroError);
-
-      // Check other about_section_images (in case of duplicates, though shouldn't happen)
-      const { data: otherAboutImages, error: aboutError } = await supabase
-        .from('about_section_images')
-        .select('id')
-        .eq('media_asset_id', mediaAssetId)
-        .limit(1);
-      if (aboutError) console.warn('Error checking about_section_images:', aboutError);
-
-      // Only delete media_asset if it's not referenced by any other table
-      const isUsedElsewhere = 
-        (timelineImages && timelineImages.length > 0) ||
-        (heroImages && heroImages.length > 0) ||
-        (otherAboutImages && otherAboutImages.length > 0);
-
-      if (!isUsedElsewhere) {
-        // Delete from storage
-        if (mediaAsset.bucket && mediaAsset.path) {
-          const { error: storageError } = await supabase.storage
-            .from(mediaAsset.bucket)
-            .remove([mediaAsset.path]);
-          if (storageError) console.warn('Error deleting file from storage:', storageError);
-        }
-
-        // Delete media_asset record
-        const { error: mediaDeleteError } = await supabase
-          .from('media_assets')
-          .delete()
-          .eq('id', mediaAssetId);
-        if (mediaDeleteError) {
-          console.warn('Error deleting media_asset (may be referenced elsewhere):', mediaDeleteError);
-          // Don't throw - the about_section_images record is already deleted
-        }
-      } else {
-        console.warn('Media asset is still referenced by other tables, skipping deletion');
-      }
+    if (mediaAsset?.id) {
+      await deleteMediaAssetIfUnused(mediaAsset);
     }
 
     await fetchAboutSections();

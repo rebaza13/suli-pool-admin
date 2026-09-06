@@ -63,7 +63,13 @@
               <h3 class="section-title">Main</h3>
               <div class="form-row">
                 <q-input v-model.number="formData.order_index" type="number" label="Order Index" outlined />
-                <q-input v-model.number="formData.value" type="number" label="Value" outlined />
+                <q-input
+                  v-model.number="formData.value"
+                  type="number"
+                  label="Value"
+                  outlined
+                  :rules="[val => (val !== null && val !== undefined && val !== '') || 'Value is required']"
+                />
                 <div class="stats-icon-field">
                   <div class="icon-preview-line">
                     <q-chip square color="primary" text-color="white" class="icon-chip">
@@ -86,7 +92,12 @@
             <div class="form-section">
               <h3 class="section-title">Labels</h3>
               <div class="form-row">
-                <q-input v-model="formData.label_en" label="Label (EN)" outlined />
+                <q-input
+                  v-model="formData.label_en"
+                  label="Label (EN)"
+                  outlined
+                  :rules="[val => !!val || 'Label (EN) is required']"
+                />
                 <q-input v-model="formData.label_ku" label="Label (KU)" outlined />
                 <q-input v-model="formData.label_ar" label="Label (AR)" outlined />
               </div>

@@ -1,8 +1,12 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from 'src/boot/supabase';
-import { resolveInstallationImagesSchema, resolveInstallationSchema } from 'src/stores/table-resolver';
 import { compressImage, compressImages } from 'src/composables/useImageCompression';
+
+const BASE_TABLE = 'installations';
+const TRANSLATIONS_TABLE = 'installation_translations';
+const TRANSLATIONS_FK = 'installation_id';
+const IMAGES_TABLE = 'installation_images';
 
 // ============================================
 // TypeScript Types
@@ -91,49 +95,43 @@ export const useInstallationStore = defineStore('installation', () => {
     error.value = null;
 
     try {
-      const schema = await resolveInstallationSchema();
       const { data: baseRows, error: baseError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .select('*')
         .order('sort_order', { ascending: true });
 
       if (baseError) throw baseError;
 
       const { data: translations, error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .select('*');
 
       if (translationsError) throw translationsError;
 
       // Images
       let images: InstallationImageLink[] = [];
-      try {
-        const imagesSchema = await resolveInstallationImagesSchema();
-        const { data: links, error: linksError } = await supabase
-          .from(imagesSchema.imagesTable)
-          .select('*')
-          .order(imagesSchema.sortColumn, { ascending: true });
-        if (linksError) throw linksError;
-        images = (links || []) as InstallationImageLink[];
+      const { data: links, error: linksError } = await supabase
+        .from(IMAGES_TABLE)
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (linksError) throw linksError;
+      images = (links || []) as InstallationImageLink[];
 
-        const mediaIds = Array.from(new Set(images.map((l) => l.media_id).filter((v) => typeof v === 'number')));
-        if (mediaIds.length > 0) {
-          const { data: assets, error: assetsError } = await supabase
-            .from('media_assets')
-            .select('*')
-            .in('id', mediaIds);
-          if (assetsError) throw assetsError;
-          const assetMap = new Map<number, MediaAsset>(((assets || []) as MediaAsset[]).map((a) => [a.id, a]));
-          images = images.map((img) => ({ ...img, media_asset: assetMap.get(img.media_id) }));
-        }
-      } catch {
-        images = [];
+      const mediaIds = Array.from(new Set(images.map((l) => l.media_id).filter((v) => typeof v === 'number')));
+      if (mediaIds.length > 0) {
+        const { data: assets, error: assetsError } = await supabase
+          .from('media_assets')
+          .select('*')
+          .in('id', mediaIds);
+        if (assetsError) throw assetsError;
+        const assetMap = new Map<number, MediaAsset>(((assets || []) as MediaAsset[]).map((a) => [a.id, a]));
+        images = images.map((img) => ({ ...img, media_asset: assetMap.get(img.media_id) }));
       }
 
       installations.value = (baseRows || []).map((row) => ({
         ...(row as Installation),
         translations: (translations || []).filter(
-          (t) => (t as Record<string, unknown>)[schema.translationsFkColumn] === (row as { id: number }).id
+          (t) => (t as Record<string, unknown>)[TRANSLATIONS_FK] === (row as { id: number }).id
         ) as InstallationTranslation[],
         images: images
           .filter((img) => (img as unknown as Record<string, unknown>).installation_id === (row as { id: number }).id)
@@ -152,9 +150,8 @@ export const useInstallationStore = defineStore('installation', () => {
     error.value = null;
 
     try {
-      const schema = await resolveInstallationSchema();
       const { data: installation, error: insertError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .insert({
           // sort_order is GENERATED ALWAYS - don't include in insert
           is_enabled: formData.is_enabled,
@@ -171,7 +168,7 @@ export const useInstallationStore = defineStore('installation', () => {
 
       if (formData.translations && formData.translations.length > 0) {
         const translationsToInsert = formData.translations.map((t) => ({
-          [schema.translationsFkColumn]: installationId,
+          [TRANSLATIONS_FK]: installationId,
           locale: t.locale,
           title: t.title,
           subtitle: t.subtitle || null,
@@ -182,7 +179,7 @@ export const useInstallationStore = defineStore('installation', () => {
         }));
 
         const { error: translationsError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .insert(translationsToInsert);
 
         if (translationsError) throw translationsError;
@@ -208,7 +205,6 @@ export const useInstallationStore = defineStore('installation', () => {
     error.value = null;
 
     try {
-      const schema = await resolveInstallationSchema();
       const updateData: Partial<Installation> = {};
 
       if (formData.is_enabled !== undefined) updateData.is_enabled = formData.is_enabled;
@@ -218,7 +214,7 @@ export const useInstallationStore = defineStore('installation', () => {
 
       if (Object.keys(updateData).length > 0) {
         const { error: baseError } = await supabase
-          .from(schema.baseTable)
+          .from(BASE_TABLE)
           .update(updateData)
           .eq('id', id);
 
@@ -227,15 +223,15 @@ export const useInstallationStore = defineStore('installation', () => {
 
       if (formData.translations) {
         const { error: deleteError } = await supabase
-          .from(schema.translationsTable)
+          .from(TRANSLATIONS_TABLE)
           .delete()
-          .eq(schema.translationsFkColumn, id);
+          .eq(TRANSLATIONS_FK, id);
 
         if (deleteError) throw deleteError;
 
         if (formData.translations.length > 0) {
           const translationsToInsert = formData.translations.map((t) => ({
-            [schema.translationsFkColumn]: id,
+            [TRANSLATIONS_FK]: id,
             locale: t.locale,
             title: t.title,
             subtitle: t.subtitle || null,
@@ -246,7 +242,7 @@ export const useInstallationStore = defineStore('installation', () => {
           }));
 
           const { error: insertError } = await supabase
-            .from(schema.translationsTable)
+            .from(TRANSLATIONS_TABLE)
             .insert(translationsToInsert);
 
           if (insertError) throw insertError;
@@ -273,32 +269,25 @@ export const useInstallationStore = defineStore('installation', () => {
     error.value = null;
 
     try {
-      const schema = await resolveInstallationSchema();
-
       // Delete images (best effort)
-      try {
-        const imagesSchema = await resolveInstallationImagesSchema();
-        const { data: rows, error: rowsError } = await supabase
-          .from(imagesSchema.imagesTable)
-          .select('*')
-          .eq('installation_id', id);
-        if (rowsError) throw rowsError;
-        const links = (rows || []) as InstallationImageLink[];
-        for (const link of links) {
-          await deleteInstallationImage(link.id);
-        }
-      } catch {
-        // ignore
+      const { data: rows, error: rowsError } = await supabase
+        .from(IMAGES_TABLE)
+        .select('*')
+        .eq('installation_id', id);
+      if (rowsError) throw rowsError;
+      const links = (rows || []) as InstallationImageLink[];
+      for (const link of links) {
+        await deleteInstallationImage(link.id);
       }
 
       const { error: translationsError } = await supabase
-        .from(schema.translationsTable)
+        .from(TRANSLATIONS_TABLE)
         .delete()
-        .eq(schema.translationsFkColumn, id);
+        .eq(TRANSLATIONS_FK, id);
       if (translationsError) throw translationsError;
 
       const { error: baseError } = await supabase
-        .from(schema.baseTable)
+        .from(BASE_TABLE)
         .delete()
         .eq('id', id);
       if (baseError) throw baseError;
@@ -314,8 +303,6 @@ export const useInstallationStore = defineStore('installation', () => {
   }
 
   async function uploadInstallationImages(installationId: number, imageFiles: File[], existingCount: number) {
-    const imagesSchema = await resolveInstallationImagesSchema();
-
     // Compress images before uploading
     const compressedFiles = await compressImages(imageFiles);
 
@@ -342,11 +329,11 @@ export const useInstallationStore = defineStore('installation', () => {
 
       const insertRow: Record<string, unknown> = {
         installation_id: installationId,
-        [imagesSchema.mediaIdColumn]: (mediaAsset as { id: number }).id,
-        [imagesSchema.sortColumn]: existingCount + i,
+        media_id: (mediaAsset as { id: number }).id,
+        sort_order: existingCount + i,
       };
 
-      const { error: linkError } = await supabase.from(imagesSchema.imagesTable).insert(insertRow);
+      const { error: linkError } = await supabase.from(IMAGES_TABLE).insert(insertRow);
       if (linkError) throw linkError;
     }
 
@@ -354,16 +341,14 @@ export const useInstallationStore = defineStore('installation', () => {
   }
 
   async function deleteInstallationImage(imageId: number) {
-    const imagesSchema = await resolveInstallationImagesSchema();
-
     const { data: row, error: rowError } = await supabase
-      .from(imagesSchema.imagesTable)
+      .from(IMAGES_TABLE)
       .select('*')
       .eq('id', imageId)
       .single();
     if (rowError) throw rowError;
 
-    const mediaId = (row as Record<string, unknown>)[imagesSchema.mediaIdColumn] as number | undefined;
+    const mediaId = (row as Record<string, unknown>)['media_id'] as number | undefined;
     let mediaAsset: MediaAsset | null = null;
     if (typeof mediaId === 'number') {
       const { data: asset, error: assetError } = await supabase
@@ -376,7 +361,7 @@ export const useInstallationStore = defineStore('installation', () => {
     }
 
     // 1) Delete from installation_images FIRST (removes foreign key reference)
-    const { error: linkDeleteError } = await supabase.from(imagesSchema.imagesTable).delete().eq('id', imageId);
+    const { error: linkDeleteError } = await supabase.from(IMAGES_TABLE).delete().eq('id', imageId);
     if (linkDeleteError) throw linkDeleteError;
 
     // 2) Delete file from storage
@@ -398,6 +383,40 @@ export const useInstallationStore = defineStore('installation', () => {
   // Background Image Management
   // ============================================
 
+  // Deletes a media_assets row (and its storage file) only if no other
+  // *_images table still references it. Mirrors about-store.ts's safe delete.
+  async function deleteMediaAssetIfUnused(mediaAsset: MediaAsset) {
+    let canDelete = true;
+
+    const { data: timelineImages, error: timelineError } = await supabase
+      .from('timeline_item_images')
+      .select('id')
+      .eq('media_id', mediaAsset.id)
+      .limit(1);
+    if (timelineError) console.warn('Could not check timeline_item_images:', timelineError);
+    if (timelineImages && timelineImages.length > 0) canDelete = false;
+
+    if (canDelete) {
+      const { data: otherSectionImages, error: sectionImgError } = await supabase
+        .from('site_section_images')
+        .select('id')
+        .eq('media_id', mediaAsset.id)
+        .limit(1);
+      if (sectionImgError) console.warn('Could not check other site_section_images:', sectionImgError);
+      if (otherSectionImages && otherSectionImages.length > 0) canDelete = false;
+    }
+
+    if (mediaAsset.bucket && mediaAsset.path) {
+      const { error: storageError } = await supabase.storage.from(mediaAsset.bucket).remove([mediaAsset.path]);
+      if (storageError) console.warn('Error deleting file from storage:', storageError);
+    }
+
+    if (canDelete) {
+      const { error: mediaError } = await supabase.from('media_assets').delete().eq('id', mediaAsset.id);
+      if (mediaError) console.warn('Could not delete media_asset (may be referenced elsewhere):', mediaError);
+    }
+  }
+
   async function fetchBackgroundImage() {
     backgroundImageLoading.value = true;
     try {
@@ -406,13 +425,9 @@ export const useInstallationStore = defineStore('installation', () => {
         .from('site_section')
         .select('id')
         .eq('key', 'installations')
-        .single();
+        .maybeSingle();
 
-      if (sectionError) {
-        // Section might not exist yet, that's okay
-        backgroundImage.value = null;
-        return;
-      }
+      if (sectionError) throw sectionError;
 
       if (!section) {
         backgroundImage.value = null;
@@ -496,68 +511,9 @@ export const useInstallationStore = defineStore('installation', () => {
 
         if (linkError) throw linkError;
 
-        // 2. Check if media_asset is used elsewhere before deleting
+        // 2. Delete the underlying media asset only if nothing else uses it
         if (mediaAsset?.id) {
-          let canDeleteMediaAsset = true;
-
-          // Check if used in timeline_item_images
-          try {
-            const { data: timelineImages, error: timelineError } = await supabase
-              .from('timeline_item_images')
-              .select('id')
-              .eq('media_id', mediaAsset.id)
-              .limit(1);
-
-            if (!timelineError && timelineImages && timelineImages.length > 0) {
-              canDeleteMediaAsset = false;
-            }
-          } catch (err) {
-            // Table might not exist, continue
-            console.warn('Could not check timeline_item_images:', err);
-          }
-
-          // Check if used in other site_section_images
-          if (canDeleteMediaAsset) {
-            try {
-              const { data: otherSectionImages, error: sectionError } = await supabase
-                .from('site_section_images')
-                .select('id')
-                .eq('media_id', mediaAsset.id)
-                .limit(1);
-
-              if (!sectionError && otherSectionImages && otherSectionImages.length > 0) {
-                canDeleteMediaAsset = false;
-              }
-            } catch (err) {
-              console.warn('Could not check other site_section_images:', err);
-            }
-          }
-
-          // 3. Delete file from storage
-          if (mediaAsset?.bucket && mediaAsset?.path) {
-            const { error: storageError } = await supabase.storage
-              .from(mediaAsset.bucket)
-              .remove([mediaAsset.path]);
-
-            if (storageError) {
-              console.warn('Error deleting file from storage:', storageError);
-            }
-          }
-
-          // 4. Delete from media_assets only if not used elsewhere
-          if (canDeleteMediaAsset) {
-            const { error: mediaError } = await supabase
-              .from('media_assets')
-              .delete()
-              .eq('id', mediaAsset.id);
-
-            if (mediaError) {
-              // If deletion fails due to foreign key, just log it - the file is already deleted from storage
-              console.warn('Could not delete media_asset (may be referenced elsewhere):', mediaError);
-            }
-          } else {
-            console.log('Media asset is used elsewhere, keeping media_assets record');
-          }
+          await deleteMediaAssetIfUnused(mediaAsset);
         }
 
         backgroundImage.value = null;
@@ -635,68 +591,9 @@ export const useInstallationStore = defineStore('installation', () => {
 
       if (linkError) throw linkError;
 
-      // 2. Check if media_asset is used elsewhere before deleting
+      // 2. Delete the underlying media asset only if nothing else uses it
       if (mediaAsset?.id) {
-        let canDeleteMediaAsset = true;
-
-        // Check if used in timeline_item_images
-        try {
-          const { data: timelineImages, error: timelineError } = await supabase
-            .from('timeline_item_images')
-            .select('id')
-            .eq('media_id', mediaAsset.id)
-            .limit(1);
-
-          if (!timelineError && timelineImages && timelineImages.length > 0) {
-            canDeleteMediaAsset = false;
-          }
-        } catch (err) {
-          // Table might not exist, continue
-          console.warn('Could not check timeline_item_images:', err);
-        }
-
-        // Check if used in other site_section_images
-        if (canDeleteMediaAsset) {
-          try {
-            const { data: otherSectionImages, error: sectionError } = await supabase
-              .from('site_section_images')
-              .select('id')
-              .eq('media_id', mediaAsset.id)
-              .limit(1);
-
-            if (!sectionError && otherSectionImages && otherSectionImages.length > 0) {
-              canDeleteMediaAsset = false;
-            }
-          } catch (err) {
-            console.warn('Could not check other site_section_images:', err);
-          }
-        }
-
-        // 3. Delete file from storage
-        if (mediaAsset?.bucket && mediaAsset?.path) {
-          const { error: storageError } = await supabase.storage
-            .from(mediaAsset.bucket)
-            .remove([mediaAsset.path]);
-
-          if (storageError) {
-            console.warn('Error deleting file from storage:', storageError);
-          }
-        }
-
-        // 4. Delete from media_assets only if not used elsewhere
-        if (canDeleteMediaAsset) {
-          const { error: mediaError } = await supabase
-            .from('media_assets')
-            .delete()
-            .eq('id', mediaAsset.id);
-
-          if (mediaError) {
-            // If deletion fails due to foreign key, just log it - the file is already deleted from storage
-            console.warn('Could not delete media_asset (may be referenced elsewhere):', mediaError);
-          }
-        } else {
-          console.log('Media asset is used elsewhere, keeping media_assets record');
-        }
+        await deleteMediaAssetIfUnused(mediaAsset);
       }
 
       backgroundImage.value = null;

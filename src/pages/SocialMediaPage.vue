@@ -36,7 +36,7 @@
               />
               <div class="platform-details">
                 <h3 class="platform-name">{{ link.platform }}</h3>
-                <a :href="link.url" target="_blank" class="platform-url">{{ link.url }}</a>
+                <a :href="link.url" target="_blank" rel="noopener noreferrer" class="platform-url">{{ link.url }}</a>
               </div>
             </div>
             <q-badge

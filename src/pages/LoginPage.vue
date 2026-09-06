@@ -53,11 +53,6 @@
             </q-banner>
           </div>
 
-          <div class="row items-center justify-between q-mb-lg">
-            <q-checkbox v-model="rememberMe" label="Remember me" dense color="secondary" :disable="loading" />
-            <q-btn flat no-caps label="Forgot password?" class="text-secondary" size="sm" :disable="loading" />
-          </div>
-
           <q-btn
             unelevated
             color="secondary"
@@ -87,7 +82,6 @@ const $q = useQuasar();
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
-const rememberMe = ref(false);
 const loading = ref(false);
 const errorMessage = ref('');
 
