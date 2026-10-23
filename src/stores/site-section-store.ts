@@ -350,7 +350,7 @@ export const useSiteSectionStore = defineStore('siteSection', () => {
         const { error: uploadError } = await supabase.storage
           .from('site-images')
           .upload(filePath, file, {
-            cacheControl: '3600',
+            cacheControl: '31536000',
             upsert: false,
           });
 

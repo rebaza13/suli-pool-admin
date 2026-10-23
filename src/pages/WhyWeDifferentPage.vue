@@ -35,7 +35,13 @@
               <span>{{ item.is_enabled ? 'Active' : 'Inactive' }}</span>
             </div>
             <div v-if="item.icon" class="icon-preview">
-              <q-icon :name="item.icon" size="18px" />
+              <img
+                v-if="item.icon.includes(':')"
+                :src="iconPreviewUrl(item.icon, '12153A')"
+                class="icon-preview-img"
+                alt=""
+              />
+              <q-icon v-else :name="item.icon" size="18px" />
               <span class="icon-name">{{ item.icon }}</span>
             </div>
           </div>
@@ -89,7 +95,13 @@
                       text-color="white"
                       class="icon-chip"
                     >
-                      <q-icon :name="formData.icon || 'emoji_events'" class="q-mr-sm" />
+                      <img
+                        v-if="(formData.icon || '').includes(':')"
+                        :src="iconPreviewUrl(formData.icon!, 'ffffff')"
+                        class="icon-chip-img q-mr-sm"
+                        alt=""
+                      />
+                      <q-icon v-else :name="formData.icon || 'emoji_events'" class="q-mr-sm" />
                       <span class="chip-text">{{ formData.icon || 'emoji_events' }}</span>
                     </q-chip>
                     <div class="icon-hint">Preview</div>
@@ -97,9 +109,9 @@
 
                   <q-input
                     v-model="formData.icon"
-                    label="Icon (Material Icon name)"
+                    label="Icon (Iconify name, matches the public site)"
                     outlined
-                    hint="Example: star, emoji_events, verified"
+                    hint="Example: mdi:water, mdi:shield-check, mdi:certificate — browse names at icones.js.org"
                     clearable
                   />
                 </div>
@@ -160,6 +172,13 @@ import {
 
 const whyStore = useWhyWeDifferentStore();
 const $q = useQuasar();
+
+// The public site renders `icon` through Nuxt's Iconify-based <Icon> component
+// (e.g. "mdi:water"), which Quasar's own q-icon can't resolve. Render Iconify
+// names via the public Iconify SVG API so the admin preview matches reality.
+function iconPreviewUrl(icon: string, color = '000000') {
+  return `https://api.iconify.design/${icon}.svg?color=%23${color}`;
+}
 
 const showDialog = ref(false);
 const isEditing = ref(false);

@@ -202,7 +202,7 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
         const { error: uploadError } = await supabase.storage
           .from('site-images')
           .upload(filePath, compressedFile, {
-            cacheControl: '3600',
+            cacheControl: '31536000',
             upsert: false,
           });
 
@@ -279,7 +279,7 @@ export const useCompanyTeamStore = defineStore('companyTeam', () => {
         const { error: uploadError } = await supabase.storage
           .from('site-images')
           .upload(filePath, compressedFile, {
-            cacheControl: '3600',
+            cacheControl: '31536000',
             upsert: false,
           });
 

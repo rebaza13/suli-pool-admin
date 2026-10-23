@@ -128,6 +128,12 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    .icon-preview-img {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
   }
 
   .actions {
@@ -249,7 +255,13 @@
         padding: $space-6 $space-12;
         font-weight: 700;
         max-width: 100%;
-        
+
+        .icon-chip-img {
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+        }
+
         @media (max-width: $bp-sm) {
           width: 100%;
         }

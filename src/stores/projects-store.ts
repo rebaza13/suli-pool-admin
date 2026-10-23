@@ -285,7 +285,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
       const { error: uploadError } = await supabase.storage
         .from('site-images')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        .upload(filePath, file, { cacheControl: '31536000', upsert: false });
       if (uploadError) throw uploadError;
 
       const { data: mediaAsset, error: mediaError } = await supabase
